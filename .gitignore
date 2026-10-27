@@ -10,5 +10,10 @@ backend/bin/
 
 # Node
 node_modules/
-dist/
+frontend/dist/
 *.log
+
+# La interfaz compilada se incrusta en el binario, pero se genera en cada
+# build: solo se versiona el directorio, para que go:embed no falle.
+backend/internal/web/dist/*
+!backend/internal/web/dist/.gitkeep

@@ -5,7 +5,9 @@
  * decidan en un solo sitio. Ningún componente llama a `fetch` directamente.
  */
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+// Vacío en producción: la interfaz y la API comparten origen porque las
+// sirve el mismo binario, así que basta con una ruta relativa.
+const BASE = import.meta.env.VITE_API_URL ?? "";
 
 /** Error con el mensaje que la API preparó para mostrar al usuario. */
 export class ApiError extends Error {

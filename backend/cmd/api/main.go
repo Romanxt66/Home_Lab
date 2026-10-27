@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
 	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
+	"github.com/Romanxt66/Home_Lab/backend/internal/web"
 )
 
 func main() {
@@ -98,6 +100,22 @@ func main() {
 	// Disparador del cron. No lleva sesión porque lo llama una máquina; se
 	// protege con un secreto y, si no está configurado, falla cerrado.
 	r.POST("/api/cron/uptime", cronAuth(os.Getenv("CRON_SECRET"), cfg.Production), uptimeHandler.RunDue)
+
+	// La interfaz, si se incrustó al compilar. En desarrollo no está y la
+	// sirve Vite en su propio puerto; en producción van juntas y por eso no
+	// hace falta CORS.
+	if interfaz := web.Handler(); interfaz != nil {
+		r.NoRoute(func(c *gin.Context) {
+			// Una ruta /api que no existe es un 404 de API, no la interfaz:
+			// devolver el index.html ahí confundiría a quien llama.
+			if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Ruta no encontrada."})
+				return
+			}
+			interfaz.ServeHTTP(c.Writer, c.Request)
+		})
+		log.Println("interfaz incrustada: se sirve desde el propio binario")
+	}
 
 	// ── Arranque y apagado ordenado ────────────────────────────────────────
 	srv := &http.Server{

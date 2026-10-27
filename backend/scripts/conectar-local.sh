@@ -62,14 +62,14 @@ cat > "$DESTINO" <<EOF
 #
 # Apunta, a través del túnel SSH, a la misma base que usa el Lab en producción.
 # search_path=lab es el equivalente en lib/pq al ?schema=lab de Prisma.
-DATABASE_URL=postgres://${USUARIO}:${CLAVE}@localhost:${PUERTO_LOCAL}/master_db?sslmode=disable&search_path=lab
+DATABASE_URL="postgres://${USUARIO}:${CLAVE}@localhost:${PUERTO_LOCAL}/master_db?sslmode=disable&search_path=lab"
 
 # El mismo secreto del Lab: así las sesiones valen en las dos aplicaciones.
-SESSION_SECRET=${SECRETO}
+SESSION_SECRET="${SECRETO}"
 
 PORT=8080
 APP_ENV=development
-ALLOWED_ORIGINS=http://localhost:5173
+ALLOWED_ORIGINS="http://localhost:5173"
 EOF
 
 echo "· Escrito $DESTINO (solo lectura para ti)."

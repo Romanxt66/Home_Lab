@@ -1,0 +1,18 @@
+# Nada de credenciales ni artefactos locales dentro de la imagen.
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.production
+
+**/node_modules
+**/dist
+backend/api
+backend/bin
+
+.git
+.gitignore
+**/*.log
+**/.DS_Store
+README.md
+Dockerfile
+.dockerignore
