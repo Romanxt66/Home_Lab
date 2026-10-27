@@ -22,6 +22,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/automations"
 	"github.com/Romanxt66/Home_Lab/backend/internal/calendar"
 	"github.com/Romanxt66/Home_Lab/backend/internal/config"
+	"github.com/Romanxt66/Home_Lab/backend/internal/coolify"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
 	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
@@ -72,6 +73,12 @@ func main() {
 	inventoryHandler := inventory.NewHandler(inventoryService)
 
 	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
+
+	coolifyService := coolify.NewService(
+		coolify.NewRESTCliente(),
+		coolify.NewPostgresRepo(db),
+	)
+	coolifyHandler := coolify.NewHandler(coolifyService)
 
 	githubConfigRepo := github.NewPostgresRepo(db)
 	githubHandler := github.NewHandler(github.NewService(
@@ -251,6 +258,7 @@ func main() {
 	githubHandler.Register(privadas.Group("/github"))
 	deploygenHandler.Register(privadas.Group("/deploygen"))
 	financeHandler.Register(privadas.Group("/finance"))
+	coolifyHandler.Register(privadas.Group("/coolify"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
