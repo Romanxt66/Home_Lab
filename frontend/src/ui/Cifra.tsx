@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** Si el sistema pide menos movimiento, las cifras aparecen ya puestas. */
 function reducirMovimiento(): boolean {
@@ -19,6 +19,9 @@ interface Props {
 export function Cifra({ valor, decimales = 0, sufijo = "" }: Props) {
   const reducido = reducirMovimiento();
   const [animado, setAnimado] = useState(0);
+  // Lo último que se pintó: el siguiente cambio parte de ahí, no de cero. Si
+  // un 2 pasara a 1 volviendo antes a 0, parecería que algo se ha roto.
+  const ultimo = useRef(0);
 
   // Con «menos movimiento» no hay animación: el valor se pinta directo, sin
   // pasar por el estado.
@@ -28,6 +31,7 @@ export function Cifra({ valor, decimales = 0, sufijo = "" }: Props) {
     if (reducido) return;
 
     const duracion = 900;
+    const desde = ultimo.current;
     const inicio = performance.now();
     let cuadro = 0;
 
@@ -36,7 +40,9 @@ export function Cifra({ valor, decimales = 0, sufijo = "" }: Props) {
       // Math.max, el progreso sale negativo y un valor 0 se pinta como «-0».
       const t = Math.min(Math.max((ahora - inicio) / duracion, 0), 1);
       const suavizado = 1 - Math.pow(1 - t, 3);
-      setAnimado(valor * suavizado);
+      const actual = desde + (valor - desde) * suavizado;
+      ultimo.current = actual;
+      setAnimado(actual);
       if (t < 1) cuadro = requestAnimationFrame(paso);
     };
     cuadro = requestAnimationFrame(paso);

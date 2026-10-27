@@ -4,15 +4,24 @@ import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
 import { Calendario } from "./pages/Calendario";
 import { Inicio } from "./pages/Inicio";
+import { Usuarios } from "./pages/Usuarios";
+import { Avatar } from "./ui/Avatar";
 import { Icono } from "./ui/Iconos";
 import type { NombreIcono } from "./ui/Iconos";
 import { Marca } from "./ui/Marca";
 
 /** Las secciones del panel. Añadir un módulo es añadir una línea aquí. */
-const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono }[] = [
+const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono; soloAdmin?: boolean }[] = [
   { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
   { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar" },
+  { ruta: "/users", etiqueta: "Usuarios", corta: "gente", icono: "shield", soloAdmin: true },
 ];
+
+/** Las secciones que ve quien ha entrado: las de administración, solo el administrador. */
+function useSecciones() {
+  const { usuario } = useSesion();
+  return SECCIONES.filter((s) => !s.soloAdmin || usuario?.role === "superadmin");
+}
 
 export default function App() {
   return (
@@ -46,6 +55,12 @@ function Raiz() {
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/calendar" element={<Calendario />} />
+          {/* El servidor ya rechaza a quien no es administrador; esto solo
+              evita enseñarle una pantalla que no puede usar. */}
+          <Route
+            path="/users"
+            element={usuario.role === "superadmin" ? <Usuarios /> : <Navigate to="/" replace />}
+          />
           {/* Una ruta que no existe lleva al inicio. */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -55,13 +70,9 @@ function Raiz() {
   );
 }
 
-function iniciales(texto: string): string {
-  const partes = texto.trim().split(/[\s@.]+/).filter(Boolean);
-  return ((partes[0]?.[0] ?? "?") + (partes[1]?.[0] ?? "")).toUpperCase();
-}
-
 function Lateral() {
   const { usuario, salir } = useSesion();
+  const secciones = useSecciones();
   const nombre = usuario?.name ?? usuario?.email ?? "";
 
   return (
@@ -77,7 +88,7 @@ function Lateral() {
       <nav aria-label="Secciones">
         <span className="etiqueta menu-titulo">menú</span>
         <div className="menu">
-          {SECCIONES.map((s) => (
+          {secciones.map((s) => (
             <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
               <Icono nombre={s.icono} />
               {s.etiqueta}
@@ -88,9 +99,7 @@ function Lateral() {
 
       <div className="lateral-pie">
         <div className="lateral-usuario">
-          <span className="avatar" aria-hidden="true">
-            {iniciales(nombre)}
-          </span>
+          <Avatar nombre={nombre} />
           <span style={{ minWidth: 0 }}>
             <b>{nombre}</b>
             <span className="etiqueta">
@@ -110,10 +119,11 @@ function Lateral() {
 /** En móvil la barra lateral desaparece y la navegación baja aquí. */
 function BarraInferior() {
   const { salir } = useSesion();
+  const secciones = useSecciones();
 
   return (
     <nav className="barra-inferior" aria-label="Secciones">
-      {SECCIONES.map((s) => (
+      {secciones.map((s) => (
         <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
           <Icono nombre={s.icono} tamano={20} />
           {s.corta}

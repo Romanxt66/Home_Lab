@@ -189,6 +189,8 @@ button { font-family: inherit; }
   color: var(--acento);
   font-size: 0.78rem; font-weight: 700;
 }
+.avatar { overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .lateral-usuario b {
   display: block; font-size: 0.82rem; color: var(--texto-2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -267,6 +269,49 @@ button { font-family: inherit; }
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 0.9rem;
 }
+
+/* ── Tarjetas ────────────────────────────────────────────────── */
+.tarjeta {
+  --tono: var(--texto-4);
+  display: grid; gap: 0.9rem; align-content: start;
+  padding: 1.1rem 1.15rem 1rem;
+  transition: transform 240ms var(--curva), border-color 240ms var(--curva);
+}
+.tarjeta:hover { transform: translateY(-2px); border-color: var(--borde-fuerte); }
+.tarjeta.tono-acento { --tono: var(--acento); }
+.tarjeta.tono-peligro { --tono: var(--peligro); }
+.tarjeta.tono-aviso { --tono: var(--aviso); }
+
+.tarjeta-cab { display: flex; align-items: center; gap: 0.8rem; }
+.tarjeta-titulo { min-width: 0; flex: 1; display: grid; gap: 1px; }
+.tarjeta-nombre {
+  font-size: 0.98rem; font-weight: 650; letter-spacing: -0.01em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tarjeta-sub {
+  font-family: var(--f-mono); font-size: 0.7rem; color: var(--texto-4);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tarjeta-pie { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.tarjeta-nota { font-size: 0.76rem; color: var(--texto-4); }
+
+.fichas { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ficha {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--borde);
+  font-family: var(--f-mono); font-size: 0.68rem; color: var(--texto-3);
+  white-space: nowrap;
+}
+.ficha .punto { width: 6px; height: 6px; border-radius: 50%; background: var(--tono); flex: none; }
+.ficha-estado {
+  color: var(--tono); font-weight: 500;
+  border-color: color-mix(in srgb, var(--tono) 32%, transparent);
+  background: color-mix(in srgb, var(--tono) 10%, transparent);
+}
+.ficha-acento { color: var(--acento); border-color: var(--acento-borde); background: var(--acento-suave); }
 
 /* ── Botones ─────────────────────────────────────────────────── */
 .btn {
