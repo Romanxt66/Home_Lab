@@ -40,14 +40,21 @@ const (
 	ResultadoRechazado TipoResultado = "rejected"
 )
 
-// GoogleLogin es el caso de uso completo.
-type GoogleLogin struct {
-	repo     CuentaRepo
-	avisador Avisador
+// Automatizador deja que las reglas del usuario reaccionen a un registro
+// nuevo. Como el avisador, es opcional.
+type Automatizador interface {
+	Disparar(ctx context.Context, disparador string, valores map[string]string)
 }
 
-func NewGoogleLogin(repo CuentaRepo, avisador Avisador) *GoogleLogin {
-	return &GoogleLogin{repo: repo, avisador: avisador}
+// GoogleLogin es el caso de uso completo.
+type GoogleLogin struct {
+	repo          CuentaRepo
+	avisador      Avisador
+	automatizador Automatizador
+}
+
+func NewGoogleLogin(repo CuentaRepo, avisador Avisador, automatizador Automatizador) *GoogleLogin {
+	return &GoogleLogin{repo: repo, avisador: avisador, automatizador: automatizador}
 }
 
 // Ejecutar identifica a quien vuelve de Google. Si es la primera vez, crea
@@ -90,17 +97,24 @@ func (g *GoogleLogin) Ejecutar(ctx context.Context, perfil GoogleProfile) (kerne
 	}
 }
 
-// avisarDeRegistro intenta avisar, pero no deja que un fallo del aviso
-// impida el registro: son dos cosas independientes y la cuenta ya está
-// creada.
+// avisarDeRegistro manda el aviso fijo y deja que salten las reglas del
+// usuario. Ninguna de las dos cosas puede impedir el registro: la cuenta ya
+// está creada y son asuntos independientes.
 func (g *GoogleLogin) avisarDeRegistro(ctx context.Context, nombre, email string) {
-	if g.avisador == nil {
-		return
-	}
 	if nombre == "" {
 		nombre = email
 	}
-	_ = g.avisador.Send(ctx, "🆕 Nuevo registro pendiente de aprobación\n"+nombre+"\n"+email)
+
+	if g.avisador != nil {
+		_ = g.avisador.Send(ctx, "🆕 Nuevo registro pendiente de aprobación\n"+nombre+"\n"+email)
+	}
+
+	if g.automatizador != nil {
+		g.automatizador.Disparar(ctx, "user_registered", map[string]string{
+			"nombre": nombre,
+			"email":  email,
+		})
+	}
 }
 
 func opcional(s string) *string {

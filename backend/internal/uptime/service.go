@@ -34,11 +34,15 @@ type Prober interface {
 	Probe(ctx context.Context, url string, method Method, timeoutMs int) ProbeResult
 }
 
-// Notifier manda el aviso cuando algo se cae o se recupera. De momento solo
-// se registra en el log; cuando se porte el módulo de notificaciones, se
-// cambia la implementación sin tocar este servicio.
+// Notifier manda el aviso cuando algo se cae o se recupera.
 type Notifier interface {
 	Send(ctx context.Context, message string) error
+}
+
+// Automatizador deja que las reglas del usuario reaccionen a una caída o a
+// una recuperación, además del aviso fijo de Telegram. Es opcional.
+type Automatizador interface {
+	Disparar(ctx context.Context, disparador string, valores map[string]string)
 }
 
 // CheckPatch son los campos que se actualizan tras una comprobación.
@@ -72,14 +76,15 @@ type RunSummary struct {
 // periódica. La decisión de si algo está caído y de si hay que avisar es
 // dominio puro (IsUp y Transition); aquí solo se encadenan los efectos.
 type Service struct {
-	monitors MonitorRepo
-	checks   CheckRepo
-	prober   Prober
-	notifier Notifier
+	monitors      MonitorRepo
+	checks        CheckRepo
+	prober        Prober
+	notifier      Notifier
+	automatizador Automatizador
 }
 
-func NewService(m MonitorRepo, c CheckRepo, p Prober, n Notifier) *Service {
-	return &Service{monitors: m, checks: c, prober: p, notifier: n}
+func NewService(m MonitorRepo, c CheckRepo, p Prober, n Notifier, a Automatizador) *Service {
+	return &Service{monitors: m, checks: c, prober: p, notifier: n, automatizador: a}
 }
 
 func (s *Service) List(ctx context.Context) ([]Monitor, error) {
@@ -232,7 +237,33 @@ func (s *Service) runOne(ctx context.Context, monitor Monitor, now time.Time) (A
 		_ = s.notifier.Send(ctx, alertMessage(monitor, alerta, probe))
 	}
 
+	// Las automatizaciones saltan siempre que haya alerta, aunque el monitor
+	// tenga desactivado el aviso de Telegram: son dos cosas distintas y el
+	// usuario pudo querer reaccionar sin recibir el mensaje.
+	if alerta != AlertNone && s.automatizador != nil {
+		disparador := "uptime_recovered"
+		if alerta == AlertDown {
+			disparador = "uptime_down"
+		}
+		s.automatizador.Disparar(ctx, disparador, map[string]string{
+			"monitor": monitor.Name,
+			"url":     monitor.URL,
+			"motivo":  motivoDeLaAlerta(probe),
+		})
+	}
+
 	return alerta, nil
+}
+
+// motivoDeLaAlerta resume por qué se considera caído, para la plantilla.
+func motivoDeLaAlerta(probe ProbeResult) string {
+	if probe.Error != nil && *probe.Error != "" {
+		return *probe.Error
+	}
+	if probe.StatusCode != nil {
+		return fmt.Sprintf("HTTP %d", *probe.StatusCode)
+	}
+	return ""
 }
 
 func alertMessage(m Monitor, alerta Alert, probe ProbeResult) string {

@@ -19,6 +19,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/Romanxt66/Home_Lab/backend/internal/auth"
+	"github.com/Romanxt66/Home_Lab/backend/internal/automations"
+	"github.com/Romanxt66/Home_Lab/backend/internal/calendar"
 	"github.com/Romanxt66/Home_Lab/backend/internal/config"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
@@ -59,14 +61,6 @@ func main() {
 	)
 	notificationHandler := notifications.NewHandler(notificationService)
 
-	uptimeService := uptime.NewService(
-		uptime.NewPostgresMonitorRepo(db),
-		uptime.NewPostgresCheckRepo(db),
-		uptime.NewHTTPProber(),
-		notifications.NewServicioNotifier(notificationService),
-	)
-	uptimeHandler := uptime.NewHandler(uptimeService)
-
 	inventoryService := inventory.NewService(
 		inventory.NewPostgresLocationRepo(db),
 		inventory.NewPostgresItemRepo(db),
@@ -80,6 +74,37 @@ func main() {
 		n8n.NewRESTCliente(),
 		n8n.NewPostgresRepo(db),
 	))
+
+	// El orden importa: el calendario necesita las notificaciones, las
+	// automatizaciones necesitan el calendario, y uptime necesita las
+	// automatizaciones para que salten las reglas cuando algo se cae.
+	// El calendario avisa por el mismo canal que todo lo demás.
+	calendarService := calendar.NewService(
+		calendar.NewPostgresRepo(db),
+		notifications.NewServicioNotifier(notificationService),
+	)
+	calendarHandler := calendar.NewHandler(calendarService)
+
+	// Las automatizaciones reaccionan a sucesos de otros módulos. El
+	// rellenado de plantillas se le pasa como función para no hacerle
+	// depender del módulo de correo, que es donde vive esa lógica.
+	automationService := automations.NewService(
+		automations.NewPostgresRepo(db),
+		notifications.NewServicioNotifier(notificationService),
+		&agendaDeAutomatizaciones{svc: calendarService},
+		automations.NewHTTPWebhook(),
+		email.Rellenar,
+	)
+	automationHandler := automations.NewHandler(automationService)
+
+	uptimeService := uptime.NewService(
+		uptime.NewPostgresMonitorRepo(db),
+		uptime.NewPostgresCheckRepo(db),
+		uptime.NewHTTPProber(),
+		notifications.NewServicioNotifier(notificationService),
+		&automatizadorDeUptime{svc: automationService},
+	)
+	uptimeHandler := uptime.NewHandler(uptimeService)
 
 	cuentasGmail := email.NewPostgresCuentaRepo(db)
 	gmailCfg := email.OAuthConfig{
@@ -137,7 +162,11 @@ func main() {
 	if googleCfg.Configurado() {
 		googleHandler = auth.NewGoogleHandler(
 			auth.NewGoogleClient(googleCfg),
-			auth.NewGoogleLogin(authRepo, notifications.NewServicioNotifier(notificationService)),
+			auth.NewGoogleLogin(
+				authRepo,
+				notifications.NewServicioNotifier(notificationService),
+				&automatizadorDeAuth{svc: automationService},
+			),
 			sessions,
 			cfg.Production,
 		)
@@ -187,6 +216,8 @@ func main() {
 	n8nHandler.Register(privadas.Group("/n8n"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
+	calendarHandler.Register(privadas.Group("/calendar"))
+	automationHandler.Register(privadas.Group("/automations"))
 	if gmailOAuth != nil {
 		gmailOAuth.Register(privadas.Group("/email"))
 	}
@@ -247,9 +278,25 @@ func main() {
 			},
 		}
 
+		tareaRecordatorios := scheduler.Tarea{
+			Nombre: "recordatorios del calendario",
+			Correr: func(ctx context.Context) error {
+				resumen, err := calendarService.ProcesarAvisos(ctx, time.Now())
+				if err != nil {
+					return err
+				}
+				if resumen.Enviados > 0 || resumen.Fallidos > 0 {
+					log.Printf("calendario: %d recordatorios enviados, %d fallidos",
+						resumen.Enviados, resumen.Fallidos)
+				}
+				return nil
+			},
+		}
+
 		go scheduler.NewTicker(
 			schedulerService.TareaDeJobs(),
 			tareaUptime,
+			tareaRecordatorios,
 		).Arrancar(ctxReloj)
 		log.Println("reloj interno encendido: tareas y uptime cada minuto")
 	} else {
@@ -306,4 +353,47 @@ func cronAuth(secreto string, produccion bool) gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+// agendaDeAutomatizaciones adapta el calendario a lo que esperan las
+// automatizaciones. Vive aquí, en la raíz de composición, para que ninguno
+// de los dos módulos tenga que conocer al otro.
+type agendaDeAutomatizaciones struct {
+	svc *calendar.Service
+}
+
+func (a *agendaDeAutomatizaciones) CrearEvento(ctx context.Context, titulo string, descripcion *string, cuando time.Time) error {
+	res, err := a.svc.Crear(ctx, calendar.Evento{
+		Title:       titulo,
+		Description: descripcion,
+		Start:       cuando,
+		AllDay:      true,
+	})
+	if err != nil {
+		return err
+	}
+	if !res.OK {
+		return errors.New(res.Error)
+	}
+	return nil
+}
+
+// automatizadorDeAuth adapta las automatizaciones a lo que espera auth, que
+// no conoce el tipo Disparador. Otra pieza de pegamento que se queda aquí.
+type automatizadorDeAuth struct {
+	svc *automations.Service
+}
+
+func (a *automatizadorDeAuth) Disparar(ctx context.Context, disparador string, valores map[string]string) {
+	a.svc.Disparar(ctx, automations.Disparador(disparador), valores)
+}
+
+// automatizadorDeUptime es el mismo pegamento que automatizadorDeAuth, para
+// que uptime tampoco tenga que conocer el tipo Disparador.
+type automatizadorDeUptime struct {
+	svc *automations.Service
+}
+
+func (a *automatizadorDeUptime) Disparar(ctx context.Context, disparador string, valores map[string]string) {
+	a.svc.Disparar(ctx, automations.Disparador(disparador), valores)
 }

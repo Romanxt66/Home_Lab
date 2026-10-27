@@ -136,6 +136,16 @@ func (a *avisadorFalso) Send(_ context.Context, m string) error {
 	return a.fallo
 }
 
+type automatizadorFalso struct {
+	disparados []string
+	valores    []map[string]string
+}
+
+func (a *automatizadorFalso) Disparar(_ context.Context, d string, v map[string]string) {
+	a.disparados = append(a.disparados, d)
+	a.valores = append(a.valores, v)
+}
+
 func perfil(email string) GoogleProfile {
 	return GoogleProfile{Email: email, Name: "Quien Sea", EmailVerified: true}
 }
@@ -144,7 +154,7 @@ func TestCuentaNuevaSeRegistraPendienteYAvisa(t *testing.T) {
 	repo := &cuentasFalsas{}
 	avisos := &avisadorFalso{}
 
-	res, err := NewGoogleLogin(repo, avisos).Ejecutar(context.Background(), perfil("nuevo@ejemplo.com"))
+	res, err := NewGoogleLogin(repo, avisos, nil).Ejecutar(context.Background(), perfil("nuevo@ejemplo.com"))
 	if err != nil || !res.OK {
 		t.Fatalf("falló: err=%v res=%+v", err, res)
 	}
@@ -165,7 +175,7 @@ func TestCuentaAprobadaRecibeSesion(t *testing.T) {
 		ID: "u1", Email: "yo@ejemplo.com", Role: "superadmin", Status: "approved",
 	}}
 
-	res, err := NewGoogleLogin(repo, &avisadorFalso{}).Ejecutar(context.Background(), perfil("yo@ejemplo.com"))
+	res, err := NewGoogleLogin(repo, &avisadorFalso{}, nil).Ejecutar(context.Background(), perfil("yo@ejemplo.com"))
 	if err != nil || !res.OK {
 		t.Fatalf("falló: err=%v res=%+v", err, res)
 	}
@@ -181,7 +191,7 @@ func TestCuentaPendienteYaExistenteNoEsNueva(t *testing.T) {
 	repo := &cuentasFalsas{existente: &Usuario{ID: "u1", Status: "pending"}}
 	avisos := &avisadorFalso{}
 
-	res, _ := NewGoogleLogin(repo, avisos).Ejecutar(context.Background(), perfil("yo@ejemplo.com"))
+	res, _ := NewGoogleLogin(repo, avisos, nil).Ejecutar(context.Background(), perfil("yo@ejemplo.com"))
 	if res.Value.Tipo != ResultadoPendiente || res.Value.Nuevo {
 		t.Errorf("esperaba pendiente y no nueva, salió %+v", res.Value)
 	}
@@ -193,7 +203,7 @@ func TestCuentaPendienteYaExistenteNoEsNueva(t *testing.T) {
 func TestCuentaRechazadaNoEntra(t *testing.T) {
 	repo := &cuentasFalsas{existente: &Usuario{ID: "u1", Status: "rejected"}}
 
-	res, _ := NewGoogleLogin(repo, &avisadorFalso{}).Ejecutar(context.Background(), perfil("yo@ejemplo.com"))
+	res, _ := NewGoogleLogin(repo, &avisadorFalso{}, nil).Ejecutar(context.Background(), perfil("yo@ejemplo.com"))
 	if res.Value.Tipo != ResultadoRechazado {
 		t.Errorf("dejó entrar a una cuenta revocada: %+v", res.Value)
 	}
@@ -204,7 +214,7 @@ func TestCorreoSinVerificarSeRechaza(t *testing.T) {
 	p := perfil("sinverificar@ejemplo.com")
 	p.EmailVerified = false
 
-	res, err := NewGoogleLogin(repo, &avisadorFalso{}).Ejecutar(context.Background(), p)
+	res, err := NewGoogleLogin(repo, &avisadorFalso{}, nil).Ejecutar(context.Background(), p)
 	if err != nil {
 		t.Fatalf("debía ser error de negocio: %v", err)
 	}
@@ -217,7 +227,7 @@ func TestCorreoSinVerificarSeRechaza(t *testing.T) {
 }
 
 func TestCorreoVacioSeRechaza(t *testing.T) {
-	res, _ := NewGoogleLogin(&cuentasFalsas{}, &avisadorFalso{}).
+	res, _ := NewGoogleLogin(&cuentasFalsas{}, &avisadorFalso{}, nil).
 		Ejecutar(context.Background(), GoogleProfile{Email: "   ", EmailVerified: true})
 	if res.OK {
 		t.Error("aceptó un perfil sin correo")
@@ -229,7 +239,7 @@ func TestUnAvisoQueFallaNoRompeElRegistro(t *testing.T) {
 	repo := &cuentasFalsas{}
 	avisos := &avisadorFalso{fallo: errors.New("telegram caído")}
 
-	res, err := NewGoogleLogin(repo, avisos).Ejecutar(context.Background(), perfil("nuevo@ejemplo.com"))
+	res, err := NewGoogleLogin(repo, avisos, nil).Ejecutar(context.Background(), perfil("nuevo@ejemplo.com"))
 	if err != nil || !res.OK {
 		t.Fatalf("el fallo del aviso tumbó el registro: err=%v res=%+v", err, res)
 	}
@@ -241,7 +251,7 @@ func TestUnAvisoQueFallaNoRompeElRegistro(t *testing.T) {
 // Sin notificaciones configuradas, entrar debe seguir funcionando.
 func TestSinAvisadorNoPetaraNada(t *testing.T) {
 	repo := &cuentasFalsas{}
-	res, err := NewGoogleLogin(repo, nil).Ejecutar(context.Background(), perfil("nuevo@ejemplo.com"))
+	res, err := NewGoogleLogin(repo, nil, nil).Ejecutar(context.Background(), perfil("nuevo@ejemplo.com"))
 	if err != nil || !res.OK {
 		t.Fatalf("falló sin avisador: err=%v res=%+v", err, res)
 	}
@@ -250,7 +260,7 @@ func TestSinAvisadorNoPetaraNada(t *testing.T) {
 // Un fallo de base sí es técnico y debe subir.
 func TestFalloDeBaseSubeComoErrorEnGoogle(t *testing.T) {
 	repo := &cuentasFalsas{fallo: errors.New("sin conexión")}
-	if _, err := NewGoogleLogin(repo, nil).Ejecutar(context.Background(), perfil("a@b.com")); err == nil {
+	if _, err := NewGoogleLogin(repo, nil, nil).Ejecutar(context.Background(), perfil("a@b.com")); err == nil {
 		t.Error("se tragó un fallo de base")
 	}
 }
@@ -258,8 +268,54 @@ func TestFalloDeBaseSubeComoErrorEnGoogle(t *testing.T) {
 // El correo se normaliza: Google puede devolverlo con mayúsculas.
 func TestCorreoSeNormaliza(t *testing.T) {
 	repo := &cuentasFalsas{}
-	_, _ = NewGoogleLogin(repo, nil).Ejecutar(context.Background(), perfil("  Yo@Ejemplo.COM  "))
+	_, _ = NewGoogleLogin(repo, nil, nil).Ejecutar(context.Background(), perfil("  Yo@Ejemplo.COM  "))
 	if repo.registrado == nil || repo.registrado.Email != "yo@ejemplo.com" {
 		t.Errorf("no normalizó el correo: %+v", repo.registrado)
+	}
+}
+
+// Un registro nuevo también debe dejar que salten las reglas del usuario.
+func TestUnRegistroNuevoDisparaLasAutomatizaciones(t *testing.T) {
+	repo := &cuentasFalsas{}
+	autos := &automatizadorFalso{}
+
+	_, _ = NewGoogleLogin(repo, &avisadorFalso{}, autos).
+		Ejecutar(context.Background(), perfil("nuevo@ejemplo.com"))
+
+	if len(autos.disparados) != 1 || autos.disparados[0] != "user_registered" {
+		t.Fatalf("disparó %v", autos.disparados)
+	}
+	if autos.valores[0]["email"] != "nuevo@ejemplo.com" {
+		t.Errorf("no pasó el correo: %v", autos.valores[0])
+	}
+	if autos.valores[0]["nombre"] != "Quien Sea" {
+		t.Errorf("no pasó el nombre: %v", autos.valores[0])
+	}
+}
+
+// Entrar con una cuenta que ya existe no es un registro nuevo.
+func TestEntrarNoDisparaElRegistro(t *testing.T) {
+	repo := &cuentasFalsas{existente: &Usuario{ID: "u1", Status: "approved"}}
+	autos := &automatizadorFalso{}
+
+	_, _ = NewGoogleLogin(repo, &avisadorFalso{}, autos).
+		Ejecutar(context.Background(), perfil("yo@ejemplo.com"))
+
+	if len(autos.disparados) != 0 {
+		t.Errorf("disparó %v al entrar con una cuenta existente", autos.disparados)
+	}
+}
+
+// Sin nombre en el perfil, se usa el correo: un aviso que diga "se registró"
+// sin decir quién no sirve de nada.
+func TestSinNombreSeUsaElCorreo(t *testing.T) {
+	repo := &cuentasFalsas{}
+	autos := &automatizadorFalso{}
+	p := GoogleProfile{Email: "anonimo@ejemplo.com", EmailVerified: true}
+
+	_, _ = NewGoogleLogin(repo, &avisadorFalso{}, autos).Ejecutar(context.Background(), p)
+
+	if autos.valores[0]["nombre"] != "anonimo@ejemplo.com" {
+		t.Errorf("nombre = %q", autos.valores[0]["nombre"])
 	}
 }
