@@ -218,5 +218,5 @@ func (h *OAuthHandler) ponerState(c *gin.Context, valor string, maxAge int) {
 // resuelve auth, que ya sabe leer las cabeceras del proxy.
 func (h *OAuthHandler) volver(c *gin.Context, clave, valor string) {
 	c.Redirect(http.StatusFound,
-		auth.OrigenPublico(c)+"/correo?"+url.Values{clave: {valor}}.Encode())
+		auth.OrigenPublico(c)+"/email-automation?"+url.Values{clave: {valor}}.Encode())
 }

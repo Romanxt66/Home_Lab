@@ -413,6 +413,7 @@ func (p *puenteDeAutomatizaciones) Disparar(ctx context.Context, disparador stri
 var destinosDelAsistente = []Destino{
 	{"email-automation", "Automatización de correos"},
 	{"scraper", "Scraper / APIs"},
+	{"deploygen", "Generador de despliegues"},
 	{"scheduler", "Tareas programadas"},
 	{"calendar", "Calendario"},
 	{"telegram", "Telegram"},

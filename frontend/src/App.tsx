@@ -3,8 +3,12 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-do
 import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
 import { Calendario } from "./pages/Calendario";
+import { Correo } from "./pages/Correo";
+import { GitHub } from "./pages/GitHub";
 import { Inicio } from "./pages/Inicio";
+import { Scraper } from "./pages/Scraper";
 import { Tareas } from "./pages/Tareas";
+import { Telegram } from "./pages/Telegram";
 import { Usuarios } from "./pages/Usuarios";
 import { Avatar } from "./ui/Avatar";
 import { Icono } from "./ui/Iconos";
@@ -15,6 +19,10 @@ import { Marca } from "./ui/Marca";
 const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono; soloAdmin?: boolean }[] = [
   { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
   { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar" },
+  { ruta: "/email-automation", etiqueta: "Correo", corta: "correo", icono: "mail" },
+  { ruta: "/github", etiqueta: "GitHub", corta: "github", icono: "git" },
+  { ruta: "/telegram", etiqueta: "Telegram", corta: "avisos", icono: "telegram" },
+  { ruta: "/scraper", etiqueta: "Scraper", corta: "scraper", icono: "code" },
   { ruta: "/scheduler", etiqueta: "Tareas programadas", corta: "tareas", icono: "clock" },
   { ruta: "/users", etiqueta: "Usuarios", corta: "gente", icono: "shield", soloAdmin: true },
 ];
@@ -58,6 +66,10 @@ function Raiz() {
           <Route path="/" element={<Inicio />} />
           <Route path="/calendar" element={<Calendario />} />
           <Route path="/scheduler" element={<Tareas />} />
+          <Route path="/email-automation" element={<Correo />} />
+          <Route path="/github" element={<GitHub />} />
+          <Route path="/telegram" element={<Telegram />} />
+          <Route path="/scraper" element={<Scraper />} />
           {/* El servidor ya rechaza a quien no es administrador; esto solo
               evita enseñarle una pantalla que no puede usar. */}
           <Route

@@ -97,3 +97,76 @@ export interface CuentaGmail {
   name: string | null;
   picture: string | null;
 }
+
+export interface ConfigTelegram {
+  id: string;
+  provider: string;
+  recipient: string;
+  active: boolean;
+  hasCredential: boolean;
+}
+
+export interface ResultadoScraper {
+  status: number;
+  contentType: string;
+  items?: string[];
+  raw?: string;
+}
+
+export interface Plantilla {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  variables: string[];
+  updatedAt: string;
+}
+
+export interface ResumenEnvio {
+  sent: number;
+  failed: number;
+}
+
+export interface ConfigGitHub {
+  id: string;
+  username: string;
+  hasToken: boolean;
+}
+
+export interface PerfilGitHub {
+  login: string;
+  name: string | null;
+  avatarUrl: string;
+  bio: string | null;
+  htmlUrl: string;
+  publicRepos: number;
+  followers: number;
+  following: number;
+  company: string | null;
+  location: string | null;
+  blog: string | null;
+}
+
+export interface RepoGitHub {
+  id: number;
+  name: string;
+  fullName: string;
+  description: string | null;
+  url: string;
+  homepage: string | null;
+  isPrivate: boolean;
+  isFork: boolean;
+  isArchived: boolean;
+  language: string | null;
+  stars: number;
+  forks: number;
+  openIssues: number;
+  topics: string[];
+  pushedAt: string | null;
+  defaultBranch: string;
+}
+
+export interface ResumenGitHub {
+  profile: PerfilGitHub;
+  repos: RepoGitHub[];
+}
