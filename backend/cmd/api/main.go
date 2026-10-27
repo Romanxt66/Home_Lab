@@ -23,6 +23,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
 	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
+	"github.com/Romanxt66/Home_Lab/backend/internal/n8n"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
 	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
@@ -72,6 +73,11 @@ func main() {
 	inventoryHandler := inventory.NewHandler(inventoryService)
 
 	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
+
+	n8nHandler := n8n.NewHandler(n8n.NewService(
+		n8n.NewRESTCliente(),
+		n8n.NewPostgresRepo(db),
+	))
 
 	scraperHandler := scraper.NewHandler(scraper.NewService(
 		scraper.NewHTTPDescargador(),
@@ -137,6 +143,7 @@ func main() {
 	notificationHandler.Register(privadas.Group("/notifications"))
 	inventoryHandler.Register(privadas.Group("/inventory"))
 	scraperHandler.Register(privadas.Group("/scraper"))
+	n8nHandler.Register(privadas.Group("/n8n"))
 
 	// Administrar cuentas es cosa del superadmin, y el grupo lo exige antes
 	// de que el módulo vea la petición.
