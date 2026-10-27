@@ -25,6 +25,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
 	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
+	"github.com/Romanxt66/Home_Lab/backend/internal/finance"
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
 	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
@@ -117,13 +118,25 @@ func main() {
 		email.Rellenar,
 	)
 	automationHandler := automations.NewHandler(automationService)
+	puenteAutomatizaciones := &puenteDeAutomatizaciones{svc: automationService}
+
+	financeService := finance.NewService(
+		finance.NewPostgresCuentaRepo(db),
+		finance.NewPostgresCategoriaRepo(db),
+		finance.NewPostgresMovimientoRepo(db),
+		finance.NewPostgresPresupuestoRepo(db),
+		finance.NewPostgresRecurrenteRepo(db),
+		notifications.NewServicioNotifier(notificationService),
+		puenteAutomatizaciones,
+	)
+	financeHandler := finance.NewHandler(financeService)
 
 	uptimeService := uptime.NewService(
 		uptime.NewPostgresMonitorRepo(db),
 		uptime.NewPostgresCheckRepo(db),
 		uptime.NewHTTPProber(),
 		notifications.NewServicioNotifier(notificationService),
-		&automatizadorDeUptime{svc: automationService},
+		puenteAutomatizaciones,
 	)
 	uptimeHandler := uptime.NewHandler(uptimeService)
 
@@ -186,7 +199,7 @@ func main() {
 			auth.NewGoogleLogin(
 				authRepo,
 				notifications.NewServicioNotifier(notificationService),
-				&automatizadorDeAuth{svc: automationService},
+				puenteAutomatizaciones,
 			),
 			sessions,
 			cfg.Production,
@@ -237,6 +250,7 @@ func main() {
 	n8nHandler.Register(privadas.Group("/n8n"))
 	githubHandler.Register(privadas.Group("/github"))
 	deploygenHandler.Register(privadas.Group("/deploygen"))
+	financeHandler.Register(privadas.Group("/finance"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
@@ -316,10 +330,29 @@ func main() {
 			},
 		}
 
+		// Los pagos recurrentes van al día, no al minuto, así que con una
+		// pasada por hora sobra; el ticker es de un minuto, y la propia
+		// función es idempotente, así que pasar de más no duplica nada.
+		tareaRecurrentes := scheduler.Tarea{
+			Nombre: "pagos recurrentes",
+			Correr: func(ctx context.Context) error {
+				resumen, err := financeService.ProcesarRecurrentes(ctx, time.Now())
+				if err != nil {
+					return err
+				}
+				if resumen.Creados > 0 || resumen.Avisados > 0 {
+					log.Printf("finanzas: %d cargos creados, %d avisos enviados",
+						resumen.Creados, resumen.Avisados)
+				}
+				return nil
+			},
+		}
+
 		go scheduler.NewTicker(
 			schedulerService.TareaDeJobs(),
 			tareaUptime,
 			tareaRecordatorios,
+			tareaRecurrentes,
 		).Arrancar(ctxReloj)
 		log.Println("reloj interno encendido: tareas y uptime cada minuto")
 	} else {
@@ -401,22 +434,13 @@ func (a *agendaDeAutomatizaciones) CrearEvento(ctx context.Context, titulo strin
 	return nil
 }
 
-// automatizadorDeAuth adapta las automatizaciones a lo que espera auth, que
-// no conoce el tipo Disparador. Otra pieza de pegamento que se queda aquí.
-type automatizadorDeAuth struct {
+// puenteDeAutomatizaciones deja que auth, uptime y finanzas disparen reglas
+// sin conocer el tipo Disparador. Vive aquí, en la raíz de composición, que
+// es donde deben quedarse las traducciones entre módulos.
+type puenteDeAutomatizaciones struct {
 	svc *automations.Service
 }
 
-func (a *automatizadorDeAuth) Disparar(ctx context.Context, disparador string, valores map[string]string) {
-	a.svc.Disparar(ctx, automations.Disparador(disparador), valores)
-}
-
-// automatizadorDeUptime es el mismo pegamento que automatizadorDeAuth, para
-// que uptime tampoco tenga que conocer el tipo Disparador.
-type automatizadorDeUptime struct {
-	svc *automations.Service
-}
-
-func (a *automatizadorDeUptime) Disparar(ctx context.Context, disparador string, valores map[string]string) {
-	a.svc.Disparar(ctx, automations.Disparador(disparador), valores)
+func (p *puenteDeAutomatizaciones) Disparar(ctx context.Context, disparador string, valores map[string]string) {
+	p.svc.Disparar(ctx, automations.Disparador(disparador), valores)
 }
