@@ -18,6 +18,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/Romanxt66/Home_Lab/backend/internal/assistant"
 	"github.com/Romanxt66/Home_Lab/backend/internal/auth"
 	"github.com/Romanxt66/Home_Lab/backend/internal/automations"
 	"github.com/Romanxt66/Home_Lab/backend/internal/calendar"
@@ -73,17 +74,19 @@ func main() {
 	)
 	inventoryHandler := inventory.NewHandler(inventoryService)
 
-	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
+	userService := users.NewService(users.NewPostgresRepo(db))
+	userHandler := users.NewHandler(userService)
 
 	// Las conexiones a bases externas se reutilizan entre consultas y se
 	// sueltan al apagar el proceso.
 	dbEjecutor := dbadmin.NewPostgresEjecutor()
 	defer dbEjecutor.Cerrar()
-	dbadminHandler := dbadmin.NewHandler(dbadmin.NewService(
+	dbadminService := dbadmin.NewService(
 		dbadmin.NewPostgresRepo(db),
 		dbEjecutor,
 		dbadmin.NewPostgresIntrospector(dbEjecutor),
-	))
+	)
+	dbadminHandler := dbadmin.NewHandler(dbadminService)
 
 	coolifyService := coolify.NewService(
 		coolify.NewRESTCliente(),
@@ -92,10 +95,11 @@ func main() {
 	coolifyHandler := coolify.NewHandler(coolifyService)
 
 	githubConfigRepo := github.NewPostgresRepo(db)
-	githubHandler := github.NewHandler(github.NewService(
+	githubService := github.NewService(
 		githubConfigRepo,
 		github.NewRESTCliente(),
-	))
+	)
+	githubHandler := github.NewHandler(githubService)
 
 	// El generador reutiliza el token guardado en el módulo de GitHub. Se le
 	// pasa como función para que no dependa de aquel paquete.
@@ -110,10 +114,11 @@ func main() {
 		},
 	))
 
-	n8nHandler := n8n.NewHandler(n8n.NewService(
+	n8nService := n8n.NewService(
 		n8n.NewRESTCliente(),
 		n8n.NewPostgresRepo(db),
-	))
+	)
+	n8nHandler := n8n.NewHandler(n8nService)
 
 	// El orden importa: el calendario necesita las notificaciones, las
 	// automatizaciones necesitan el calendario, y uptime necesita las
@@ -182,6 +187,24 @@ func main() {
 	var gmailOAuth *email.OAuthHandler
 	if gmailCfg.Configurado() {
 		gmailOAuth = email.NewOAuthHandler(gmailCfg, cuentasGmail, sessions, cfg.Production)
+	}
+
+	// El asistente va el último: sus herramientas usan casi todos los demás
+	// servicios, así que tienen que existir ya.
+	asistente := assistant.NewHandler(assistant.NewService(
+		assistant.NewGeminiCliente(assistant.GeminiConfig{
+			APIKey: cfg.GeminiAPIKey, Model: cfg.GeminiModel,
+		}),
+		construirHerramientas(Servicios{
+			Finance: financeService, Uptime: uptimeService, Users: userService,
+			Calendar: calendarService, Inventory: inventoryService,
+			Automations: automationService, DBAdmin: dbadminService,
+			Coolify: coolifyService, GitHub: githubService, N8n: n8nService,
+			Destinos: destinosDelAsistente,
+		}),
+	))
+	if cfg.GeminiAPIKey == "" {
+		log.Println("asistente sin clave: define GEMINI_API_KEY para activarlo")
 	}
 
 	scraperService := scraper.NewService(
@@ -271,6 +294,7 @@ func main() {
 	financeHandler.Register(privadas.Group("/finance"))
 	coolifyHandler.Register(privadas.Group("/coolify"))
 	dbadminHandler.Register(privadas.Group("/db-admin"))
+	asistente.Register(privadas.Group("/assistant"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
@@ -463,4 +487,23 @@ type puenteDeAutomatizaciones struct {
 
 func (p *puenteDeAutomatizaciones) Disparar(ctx context.Context, disparador string, valores map[string]string) {
 	p.svc.Disparar(ctx, automations.Disparador(disparador), valores)
+}
+
+// destinosDelAsistente son las secciones a las que el asistente puede llevar
+// al usuario. Los identificadores son los de las rutas de la interfaz.
+var destinosDelAsistente = []Destino{
+	{"email-automation", "Automatización de correos"},
+	{"scraper", "Scraper / APIs"},
+	{"scheduler", "Tareas programadas"},
+	{"calendar", "Calendario"},
+	{"telegram", "Telegram"},
+	{"db-admin", "DB Admin"},
+	{"finance", "Finanzas"},
+	{"inventory", "Inventario"},
+	{"github", "GitHub"},
+	{"coolify", "Despliegues (Coolify)"},
+	{"uptime", "Monitor de Uptime"},
+	{"users", "Usuarios"},
+	{"n8n", "n8n"},
+	{"automations", "Automatizaciones"},
 }

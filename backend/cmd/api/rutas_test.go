@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/Romanxt66/Home_Lab/backend/internal/assistant"
 	"github.com/Romanxt66/Home_Lab/backend/internal/auth"
 	"github.com/Romanxt66/Home_Lab/backend/internal/automations"
 	"github.com/Romanxt66/Home_Lab/backend/internal/calendar"
@@ -66,6 +67,7 @@ func TestNingunaRutaChocaConOtra(t *testing.T) {
 	finance.NewHandler(nil).Register(privadas.Group("/finance"))
 	coolify.NewHandler(nil).Register(privadas.Group("/coolify"))
 	dbadmin.NewHandler(nil).Register(privadas.Group("/db-admin"))
+	assistant.NewHandler(nil).Register(privadas.Group("/assistant"))
 	users.NewHandler(nil).Register(privadas.Group("/users"))
 
 	r.POST("/api/cron/uptime", func(*gin.Context) {})

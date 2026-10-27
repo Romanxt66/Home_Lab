@@ -36,6 +36,11 @@ type Config struct {
 	// de entrar: Google exige que cada una esté dada de alta tal cual.
 	GmailRedirectURI string
 
+	// Asistente: sin clave, la herramienta funciona pero responde que no está
+	// configurada, en vez de impedir arrancar.
+	GeminiAPIKey string
+	GeminiModel  string
+
 	// Servidor de correo del sistema. Opcional: sin él solo se puede enviar
 	// desde un buzón de Gmail conectado.
 	SMTPHost string
@@ -58,6 +63,9 @@ func Load() (Config, error) {
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		GoogleRedirectURI:  os.Getenv("GOOGLE_LOGIN_REDIRECT_URI"),
 		GmailRedirectURI:   os.Getenv("GOOGLE_REDIRECT_URI"),
+
+		GeminiAPIKey: os.Getenv("GEMINI_API_KEY"),
+		GeminiModel:  valueOr(os.Getenv("GEMINI_MODEL"), "gemini-flash-latest"),
 
 		SMTPHost: os.Getenv("SMTP_HOST"),
 		SMTPPort: IntOr("SMTP_PORT", 587),
