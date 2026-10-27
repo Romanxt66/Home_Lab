@@ -21,6 +21,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/auth"
 	"github.com/Romanxt66/Home_Lab/backend/internal/config"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
+	"github.com/Romanxt66/Home_Lab/backend/internal/email"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
 	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
 	"github.com/Romanxt66/Home_Lab/backend/internal/n8n"
@@ -80,6 +81,32 @@ func main() {
 		n8n.NewPostgresRepo(db),
 	))
 
+	cuentasGmail := email.NewPostgresCuentaRepo(db)
+	gmailCfg := email.OAuthConfig{
+		ClientID:     cfg.GoogleClientID,
+		ClientSecret: cfg.GoogleClientSecret,
+		RedirectURI:  cfg.GmailRedirectURI,
+	}
+	emailService := email.NewService(
+		email.NewSMTPEnviador(email.SMTPConfig{
+			Host: cfg.SMTPHost, Port: cfg.SMTPPort,
+			User: cfg.SMTPUser, Pass: cfg.SMTPPass, From: cfg.SMTPFrom,
+		}),
+		email.NewGmailEnviador(gmailCfg, cuentasGmail),
+		email.NewPostgresPlantillaRepo(db),
+		cuentasGmail,
+		email.NewPostgresRegistro(db),
+	)
+	emailHandler := email.NewHandler(emailService)
+
+	// Conectar un buzón es otro flujo de OAuth distinto del de entrar: aquí
+	// sí se pide permiso duradero, porque hay que enviar más tarde sin el
+	// usuario delante.
+	var gmailOAuth *email.OAuthHandler
+	if gmailCfg.Configurado() {
+		gmailOAuth = email.NewOAuthHandler(gmailCfg, cuentasGmail, sessions, cfg.Production)
+	}
+
 	scraperService := scraper.NewService(
 		scraper.NewHTTPDescargador(),
 		scraper.NewGoqueryExtractor(),
@@ -92,6 +119,7 @@ func main() {
 		scheduler.NewPostgresJobRepo(db),
 		scheduler.NewPostgresRunRepo(db),
 		map[scheduler.Accion]scheduler.Ejecutor{
+			scheduler.AccionEmail:  email.EjecutorDeTarea(emailService),
 			scheduler.AccionScrape: scraper.EjecutorDeTarea(scraperService),
 		},
 	)
@@ -158,6 +186,10 @@ func main() {
 	scraperHandler.Register(privadas.Group("/scraper"))
 	n8nHandler.Register(privadas.Group("/n8n"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
+	emailHandler.Register(privadas.Group("/email"))
+	if gmailOAuth != nil {
+		gmailOAuth.Register(privadas.Group("/email"))
+	}
 
 	// Administrar cuentas es cosa del superadmin, y el grupo lo exige antes
 	// de que el módulo vea la petición.

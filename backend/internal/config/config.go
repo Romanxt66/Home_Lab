@@ -31,6 +31,18 @@ type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleRedirectURI  string
+
+	// Dirección de vuelta para conectar un buzón de Gmail. Es distinta de la
+	// de entrar: Google exige que cada una esté dada de alta tal cual.
+	GmailRedirectURI string
+
+	// Servidor de correo del sistema. Opcional: sin él solo se puede enviar
+	// desde un buzón de Gmail conectado.
+	SMTPHost string
+	SMTPPort int
+	SMTPUser string
+	SMTPPass string
+	SMTPFrom string
 }
 
 // Load lee el entorno y falla pronto si falta algo imprescindible. Es mejor no
@@ -45,6 +57,13 @@ func Load() (Config, error) {
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		GoogleRedirectURI:  os.Getenv("GOOGLE_LOGIN_REDIRECT_URI"),
+		GmailRedirectURI:   os.Getenv("GOOGLE_REDIRECT_URI"),
+
+		SMTPHost: os.Getenv("SMTP_HOST"),
+		SMTPPort: IntOr("SMTP_PORT", 587),
+		SMTPUser: os.Getenv("SMTP_USER"),
+		SMTPPass: os.Getenv("SMTP_PASS"),
+		SMTPFrom: os.Getenv("SMTP_FROM"),
 	}
 
 	if cfg.DatabaseURL == "" {

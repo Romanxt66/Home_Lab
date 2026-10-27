@@ -105,7 +105,7 @@ func (h *GoogleHandler) callback(c *gin.Context) {
 			return
 		}
 		h.ponerCookieSesion(c, sesion)
-		c.Redirect(http.StatusFound, origenPublico(c)+"/")
+		c.Redirect(http.StatusFound, OrigenPublico(c)+"/")
 	}
 }
 
@@ -113,7 +113,7 @@ func (h *GoogleHandler) callback(c *gin.Context) {
 // Esperar aprobación no es un error, por eso viaja como "estado" y no como
 // "error": la interfaz lo cuenta con otro tono.
 func (h *GoogleHandler) volverAlAcceso(c *gin.Context, clave, valor string) {
-	destino := origenPublico(c) + "/acceso?" + url.Values{clave: {valor}}.Encode()
+	destino := OrigenPublico(c) + "/acceso?" + url.Values{clave: {valor}}.Encode()
 	c.Redirect(http.StatusFound, destino)
 }
 
@@ -127,13 +127,13 @@ func (h *GoogleHandler) ponerCookieSesion(c *gin.Context, token string) {
 	c.SetCookie(SessionCookie, token, SessionMaxAge, "/", "", h.produccion, true)
 }
 
-// origenPublico reconstruye la dirección real del sitio.
+// OrigenPublico reconstruye la dirección real del sitio.
 //
 // Detrás del proxy de Coolify, el host con el que llega la petición es el
 // interno del contenedor (localhost:8080); construir la redirección con él
 // sacaría al usuario fuera del sitio. El proxy nos dice el host de verdad
 // en las cabeceras X-Forwarded-*, así que se miran primero.
-func origenPublico(c *gin.Context) string {
+func OrigenPublico(c *gin.Context) string {
 	esquema := primero(c.GetHeader("X-Forwarded-Proto"), "http")
 	if c.Request.TLS != nil {
 		esquema = "https"

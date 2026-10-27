@@ -142,10 +142,10 @@ func TestMovementDelta(t *testing.T) {
 		{MovReceived, 3, 3},
 		{MovSold, 2, -2},
 		{MovGaveAway, 4, -4},
-		{MovMoved, 9, 0},        // cambiar de sitio no altera el total
-		{MovAdjust, -3, -3},     // el ajuste trae su propio signo
+		{MovMoved, 9, 0},    // cambiar de sitio no altera el total
+		{MovAdjust, -3, -3}, // el ajuste trae su propio signo
 		{MovAdjust, 7, 7},
-		{MovSold, -2, -2},       // el signo de entrada no debe invertir el sentido
+		{MovSold, -2, -2}, // el signo de entrada no debe invertir el sentido
 	}
 
 	for _, caso := range casos {
