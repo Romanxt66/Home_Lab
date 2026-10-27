@@ -44,7 +44,8 @@ func main() {
 	// ── Cableado ───────────────────────────────────────────────────────────
 	sessions := auth.NewSessions(cfg.SessionSecret)
 
-	authHandler := auth.NewHandler(auth.NewRepo(db), sessions, cfg.Production)
+	authRepo := auth.NewRepo(db)
+	authHandler := auth.NewHandler(authRepo, sessions, cfg.Production)
 
 	// Las notificaciones se cablean antes porque uptime depende de ellas:
 	// cuando un monitor se cae, el aviso sale por aquí.
@@ -71,6 +72,27 @@ func main() {
 
 	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
 
+	// Entrar con Google es opcional: sin credenciales configuradas la
+	// aplicación funciona igual, solo que no se ofrece ese camino. Por eso
+	// el handler puede quedarse en nil.
+	googleCfg := auth.GoogleConfig{
+		ClientID:     cfg.GoogleClientID,
+		ClientSecret: cfg.GoogleClientSecret,
+		RedirectURI:  cfg.GoogleRedirectURI,
+	}
+	var googleHandler *auth.GoogleHandler
+	if googleCfg.Configurado() {
+		googleHandler = auth.NewGoogleHandler(
+			auth.NewGoogleClient(googleCfg),
+			auth.NewGoogleLogin(authRepo, notifications.NewServicioNotifier(notificationService)),
+			sessions,
+			cfg.Production,
+		)
+	} else {
+		log.Println("acceso con Google desactivado: faltan GOOGLE_CLIENT_ID, " +
+			"GOOGLE_CLIENT_SECRET o GOOGLE_LOGIN_REDIRECT_URI")
+	}
+
 	// ── Rutas ──────────────────────────────────────────────────────────────
 	if cfg.Production {
 		gin.SetMode(gin.ReleaseMode)
@@ -89,8 +111,17 @@ func main() {
 
 	api := r.Group("/api")
 
-	// Públicas: iniciar y cerrar sesión.
-	authHandler.Register(api.Group("/auth"))
+	// Públicas: iniciar y cerrar sesión, y el ida y vuelta con Google.
+	publicas := api.Group("/auth")
+	authHandler.Register(publicas)
+	if googleHandler != nil {
+		googleHandler.Register(publicas)
+	}
+
+	// La interfaz pregunta por aquí si puede enseñar el botón de Google.
+	api.GET("/auth/proveedores", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"google": googleHandler != nil})
+	})
 
 	// Protegidas: todo lo demás.
 	privadas := api.Group("")

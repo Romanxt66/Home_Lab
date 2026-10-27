@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	ErrTokenInvalido  = errors.New("sesión inválida")
-	ErrTokenExpirado  = errors.New("sesión expirada")
+	ErrTokenInvalido   = errors.New("sesión inválida")
+	ErrTokenExpirado   = errors.New("sesión expirada")
 	ErrTokenMalformado = errors.New("sesión malformada")
 )
 

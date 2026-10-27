@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -39,6 +40,22 @@ func (r *Repo) PorEmail(ctx context.Context, email string) (*Usuario, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// Registrar crea una cuenta nueva a partir de una identidad de Google.
+// Nace siempre pendiente y con rol de usuario: quién entra lo decide un
+// superadmin, nunca quien se registra.
+func (r *Repo) Registrar(ctx context.Context, email string, nombre, foto *string) (*Usuario, error) {
+	var u Usuario
+	err := r.db.GetContext(ctx, &u, `
+		INSERT INTO usuarioslab (id, email, name, picture, "passwordHash", role, status, "createdAt")
+		VALUES ($1, $2, $3, $4, NULL, 'user', 'pending', NOW())
+		RETURNING id, email, name, "passwordHash", role, status`,
+		uuid.NewString(), strings.ToLower(strings.TrimSpace(email)), nombre, foto)
 	if err != nil {
 		return nil, err
 	}

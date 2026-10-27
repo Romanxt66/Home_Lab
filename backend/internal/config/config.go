@@ -25,6 +25,12 @@ type Config struct {
 
 	// En producción la cookie viaja solo por HTTPS.
 	Production bool
+
+	// Credenciales de Google para "entrar con Google". Son opcionales: sin
+	// ellas la aplicación funciona igual, solo que no se ofrece el botón.
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleRedirectURI  string
 }
 
 // Load lee el entorno y falla pronto si falta algo imprescindible. Es mejor no
@@ -35,6 +41,10 @@ func Load() (Config, error) {
 		SessionSecret: os.Getenv("SESSION_SECRET"),
 		Port:          valueOr(os.Getenv("PORT"), "8080"),
 		Production:    os.Getenv("APP_ENV") == "production",
+
+		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		GoogleRedirectURI:  os.Getenv("GOOGLE_LOGIN_REDIRECT_URI"),
 	}
 
 	if cfg.DatabaseURL == "" {
