@@ -3,6 +3,14 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-do
 import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
 import { Uptime } from "./pages/Uptime";
+import { Icono } from "./ui/Iconos";
+import type { NombreIcono } from "./ui/Iconos";
+import { Marca } from "./ui/Marca";
+
+/** Las secciones del panel. Añadir un módulo es añadir una línea aquí. */
+const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono }[] = [
+  { ruta: "/uptime", etiqueta: "Monitor de uptime", corta: "uptime", icono: "pulse" },
+];
 
 export default function App() {
   return (
@@ -18,11 +26,11 @@ export default function App() {
 function Raiz() {
   const { usuario, cargando } = useSesion();
 
-  // Sin esta espera se vería el login un instante aunque hubiera sesión.
+  // Sin esta espera se vería el acceso un instante aunque hubiera sesión.
   if (cargando) {
     return (
-      <div className="acceso">
-        <span style={{ color: "var(--texto-4)" }}>Cargando…</span>
+      <div className="cargando-pantalla" role="status" aria-label="Cargando">
+        <Marca tamano={44} />
       </div>
     );
   }
@@ -39,41 +47,79 @@ function Raiz() {
           <Route path="*" element={<Navigate to="/uptime" replace />} />
         </Routes>
       </main>
+      <BarraInferior />
     </div>
   );
 }
 
+function iniciales(texto: string): string {
+  const partes = texto.trim().split(/[\s@.]+/).filter(Boolean);
+  return ((partes[0]?.[0] ?? "?") + (partes[1]?.[0] ?? "")).toUpperCase();
+}
+
 function Lateral() {
   const { usuario, salir } = useSesion();
+  const nombre = usuario?.name ?? usuario?.email ?? "";
 
   return (
     <aside className="lateral">
       <div className="marca">
-        <span className="marca-logo" />
+        <Marca />
         <span>
           <span className="marca-nombre">Home Lab</span>
-          <span className="marca-sub">Panel de herramientas</span>
+          <span className="etiqueta marca-sub">panel de herramientas</span>
         </span>
       </div>
 
-      <nav>
-        <div className="menu-titulo">Menú principal</div>
+      <nav aria-label="Secciones">
+        <span className="etiqueta menu-titulo">menú</span>
         <div className="menu">
-          <NavLink to="/uptime" className={({ isActive }) => (isActive ? "activo" : "")}>
-            Monitor de uptime
-          </NavLink>
+          {SECCIONES.map((s) => (
+            <NavLink key={s.ruta} to={s.ruta} className={({ isActive }) => (isActive ? "activo" : "")}>
+              <Icono nombre={s.icono} />
+              {s.etiqueta}
+            </NavLink>
+          ))}
         </div>
       </nav>
 
       <div className="lateral-pie">
         <div className="lateral-usuario">
-          <b>{usuario?.name ?? usuario?.email}</b>
-          {usuario?.role === "superadmin" ? "Administrador" : "Usuario"}
+          <span className="avatar" aria-hidden="true">
+            {iniciales(nombre)}
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <b>{nombre}</b>
+            <span className="etiqueta">
+              {usuario?.role === "superadmin" ? "administrador" : "usuario"}
+            </span>
+          </span>
         </div>
-        <button className="btn btn-ancho" onClick={() => void salir()}>
+        <button className="btn btn-fantasma btn-ancho" onClick={() => void salir()}>
+          <Icono nombre="logout" tamano={16} />
           Cerrar sesión
         </button>
       </div>
     </aside>
+  );
+}
+
+/** En móvil la barra lateral desaparece y la navegación baja aquí. */
+function BarraInferior() {
+  const { salir } = useSesion();
+
+  return (
+    <nav className="barra-inferior" aria-label="Secciones">
+      {SECCIONES.map((s) => (
+        <NavLink key={s.ruta} to={s.ruta} className={({ isActive }) => (isActive ? "activo" : "")}>
+          <Icono nombre={s.icono} tamano={20} />
+          {s.corta}
+        </NavLink>
+      ))}
+      <button onClick={() => void salir()}>
+        <Icono nombre="logout" tamano={20} />
+        salir
+      </button>
+    </nav>
   );
 }

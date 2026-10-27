@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 import type { HttpMethod, Monitor, MonitorInput } from "../api/tipos";
+import { Icono } from "../ui/Iconos";
 
 /** Valores de partida para un monitor nuevo. */
 const NUEVO: MonitorInput = {
@@ -52,17 +53,41 @@ export function DialogoMonitor({ monitor, guardando, error, onGuardar, onCerrar 
   return (
     <div className="fondo-dialogo" onMouseDown={onCerrar}>
       {/* Parar la propagación: un clic dentro del diálogo no debe cerrarlo. */}
-      <div className="dialogo" onMouseDown={(e) => e.stopPropagation()}>
+      <div
+        className="dialogo"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialogo-titulo"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <form onSubmit={alEnviar}>
           <div className="dialogo-cab">
-            <h2>{monitor ? "Editar monitor" : "Nuevo monitor"}</h2>
-            <button type="button" className="btn btn-pequeno" onClick={onCerrar}>
-              Cerrar
+            <div className="dialogo-cab-texto">
+              <span className="etiqueta">{monitor ? "editar" : "nuevo"}</span>
+              <h2 id="dialogo-titulo" className="dialogo-titular">
+                {monitor ? (
+                  <>
+                    Ajusta <em>este monitor</em>.
+                  </>
+                ) : (
+                  <>
+                    Vigila <em>algo nuevo</em>.
+                  </>
+                )}
+              </h2>
+            </div>
+            <button type="button" className="accion" onClick={onCerrar} aria-label="Cerrar" title="Cerrar">
+              <Icono nombre="close" tamano={18} />
             </button>
           </div>
 
           <div className="dialogo-cuerpo">
-            {error && <div className="alerta alerta-error">{error}</div>}
+            {error && (
+              <div className="alerta alerta-error" role="alert">
+                <Icono nombre="alert" tamano={16} />
+                <span>{error}</span>
+              </div>
+            )}
 
             <div className="campo">
               <label htmlFor="name">Nombre</label>

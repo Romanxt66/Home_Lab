@@ -9,6 +9,11 @@
 // sirve el mismo binario, así que basta con una ruta relativa.
 const BASE = import.meta.env.VITE_API_URL ?? "";
 
+/** Dirección completa de una ruta de la API, para enlaces que no son fetch. */
+export function urlApi(ruta: string): string {
+  return `${BASE}/api${ruta}`;
+}
+
 /** Error con el mensaje que la API preparó para mostrar al usuario. */
 export class ApiError extends Error {
   readonly status: number;
