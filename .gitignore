@@ -1,0 +1,14 @@
+# Entorno: nunca se suben credenciales
+.env
+.env.local
+*.env
+!.env.example
+
+# Go
+backend/api
+backend/bin/
+
+# Node
+node_modules/
+dist/
+*.log
