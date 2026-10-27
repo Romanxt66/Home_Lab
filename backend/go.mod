@@ -3,6 +3,8 @@ module github.com/Romanxt66/Home_Lab/backend
 go 1.27.1
 
 require (
+	github.com/PuerkitoBio/goquery v1.10.3
+	github.com/andybalholm/cascadia v1.3.5
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0

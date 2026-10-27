@@ -24,6 +24,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
 	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
+	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
 	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
 	"github.com/Romanxt66/Home_Lab/backend/internal/web"
@@ -71,6 +72,11 @@ func main() {
 	inventoryHandler := inventory.NewHandler(inventoryService)
 
 	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
+
+	scraperHandler := scraper.NewHandler(scraper.NewService(
+		scraper.NewHTTPDescargador(),
+		scraper.NewGoqueryExtractor(),
+	))
 
 	// Entrar con Google es opcional: sin credenciales configuradas la
 	// aplicación funciona igual, solo que no se ofrece ese camino. Por eso
@@ -130,6 +136,7 @@ func main() {
 	uptimeHandler.Register(privadas.Group("/uptime"))
 	notificationHandler.Register(privadas.Group("/notifications"))
 	inventoryHandler.Register(privadas.Group("/inventory"))
+	scraperHandler.Register(privadas.Group("/scraper"))
 
 	// Administrar cuentas es cosa del superadmin, y el grupo lo exige antes
 	// de que el módulo vea la petición.
