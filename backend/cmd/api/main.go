@@ -25,6 +25,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
 	"github.com/Romanxt66/Home_Lab/backend/internal/n8n"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
+	"github.com/Romanxt66/Home_Lab/backend/internal/scheduler"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
 	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
@@ -79,10 +80,22 @@ func main() {
 		n8n.NewPostgresRepo(db),
 	))
 
-	scraperHandler := scraper.NewHandler(scraper.NewService(
+	scraperService := scraper.NewService(
 		scraper.NewHTTPDescargador(),
 		scraper.NewGoqueryExtractor(),
-	))
+	)
+	scraperHandler := scraper.NewHandler(scraperService)
+
+	// El planificador no sabe nada de scraping ni de correo: solo despacha
+	// a quien corresponda y anota el resultado.
+	schedulerService := scheduler.NewService(
+		scheduler.NewPostgresJobRepo(db),
+		scheduler.NewPostgresRunRepo(db),
+		map[scheduler.Accion]scheduler.Ejecutor{
+			scheduler.AccionScrape: scraper.EjecutorDeTarea(scraperService),
+		},
+	)
+	schedulerHandler := scheduler.NewHandler(schedulerService)
 
 	// Entrar con Google es opcional: sin credenciales configuradas la
 	// aplicación funciona igual, solo que no se ofrece ese camino. Por eso
@@ -144,6 +157,7 @@ func main() {
 	inventoryHandler.Register(privadas.Group("/inventory"))
 	scraperHandler.Register(privadas.Group("/scraper"))
 	n8nHandler.Register(privadas.Group("/n8n"))
+	schedulerHandler.Register(privadas.Group("/scheduler"))
 
 	// Administrar cuentas es cosa del superadmin, y el grupo lo exige antes
 	// de que el módulo vea la petición.
@@ -153,7 +167,9 @@ func main() {
 
 	// Disparador del cron. No lleva sesión porque lo llama una máquina; se
 	// protege con un secreto y, si no está configurado, falla cerrado.
-	r.POST("/api/cron/uptime", cronAuth(os.Getenv("CRON_SECRET"), cfg.Production), uptimeHandler.RunDue)
+	cron := cronAuth(os.Getenv("CRON_SECRET"), cfg.Production)
+	r.POST("/api/cron/uptime", cron, uptimeHandler.RunDue)
+	r.POST("/api/cron/scheduler", cron, schedulerHandler.RunDue)
 
 	// La interfaz, si se incrustó al compilar. En desarrollo no está y la
 	// sirve Vite en su propio puerto; en producción van juntas y por eso no
@@ -169,6 +185,43 @@ func main() {
 			interfaz.ServeHTTP(c.Writer, c.Request)
 		})
 		log.Println("interfaz incrustada: se sirve desde el propio binario")
+	}
+
+	// ── El reloj interno ───────────────────────────────────────────────────
+	// El binario está siempre levantado, así que una gorutina basta y no hace
+	// falta que nadie llame al endpoint desde fuera.
+	//
+	// Viene apagado a propósito: mientras el Lab siga desplegado, su propio
+	// cron está ejecutando estas mismas tareas sobre la misma base, y los dos
+	// a la vez mandarían cada aviso dos veces.
+	ctxReloj, pararReloj := context.WithCancel(context.Background())
+	defer pararReloj()
+
+	if os.Getenv("SCHEDULER_INTERNO") == "1" {
+		// La tarea de uptime se arma aquí y no dentro del módulo, para que
+		// uptime no tenga que conocer al planificador.
+		tareaUptime := scheduler.Tarea{
+			Nombre: "monitores de uptime",
+			Correr: func(ctx context.Context) error {
+				resumen, err := uptimeService.RunDueChecks(ctx, time.Now())
+				if err != nil {
+					return err
+				}
+				if resumen.Down > 0 || resumen.Recovered > 0 {
+					log.Printf("uptime: %d comprobados, %d caídos, %d recuperados",
+						resumen.Checked, resumen.Down, resumen.Recovered)
+				}
+				return nil
+			},
+		}
+
+		go scheduler.NewTicker(
+			schedulerService.TareaDeJobs(),
+			tareaUptime,
+		).Arrancar(ctxReloj)
+		log.Println("reloj interno encendido: tareas y uptime cada minuto")
+	} else {
+		log.Println("reloj interno apagado (SCHEDULER_INTERNO=1 para encenderlo)")
 	}
 
 	// ── Arranque y apagado ordenado ────────────────────────────────────────
@@ -192,6 +245,7 @@ func main() {
 	<-parada
 
 	log.Println("apagando…")
+	pararReloj()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
