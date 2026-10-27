@@ -27,10 +27,17 @@ tocan: el Lab original sigue usándolas.
 | Coolify, administrador de bases de datos | Portado |
 | Asistente (Gemini) | Portado |
 
-El frontend tiene el acceso, el inicio, el **calendario**, las **tareas
-programadas** y la gestión de **usuarios** (solo para administradores); las pantallas de
-los demás módulos están por hacer. El webhook de n8n sigue existiendo como *acción*
-de las automatizaciones; lo que se quitó es el panel de n8n.
+El frontend cubre ya **todos** los módulos: acceso, inicio, calendario,
+automatizaciones, generador de despliegues, Coolify, administrador de bases de
+datos, correo, GitHub, Telegram, scraper, tareas programadas y usuarios (solo
+para administradores), más el **asistente** flotante. El webhook de n8n sigue
+existiendo como *acción* de las automatizaciones; lo que se quitó es el panel
+de n8n.
+
+Dos matices: el administrador de bases de datos enseña las relaciones entre
+tablas como una lista agrupada, no como un diagrama dibujado con flechas, y el
+frontend no tiene pruebas automáticas todavía (se ha verificado a mano contra
+una API simulada).
 
 ## Por qué Go
 

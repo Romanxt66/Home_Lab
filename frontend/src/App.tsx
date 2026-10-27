@@ -1,4 +1,5 @@
-import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
@@ -14,6 +15,7 @@ import { Scraper } from "./pages/Scraper";
 import { Tareas } from "./pages/Tareas";
 import { Telegram } from "./pages/Telegram";
 import { Usuarios } from "./pages/Usuarios";
+import { Asistente } from "./ui/Asistente";
 import { Avatar } from "./ui/Avatar";
 import { Icono } from "./ui/Iconos";
 import type { NombreIcono } from "./ui/Iconos";
@@ -93,6 +95,7 @@ function Raiz() {
         </Routes>
       </main>
       <BarraInferior />
+      <Asistente />
     </div>
   );
 }
@@ -143,23 +146,69 @@ function Lateral() {
   );
 }
 
+/** Las que van siempre a mano en la barra de móvil; el resto cuelga de «más». */
+const PRINCIPALES = ["/", "/calendar", "/coolify", "/db-admin"];
+
 /** En móvil la barra lateral desaparece y la navegación baja aquí. */
 function BarraInferior() {
-  const { salir } = useSesion();
+  const { usuario, salir } = useSesion();
   const secciones = useSecciones();
+  const { pathname } = useLocation();
+  // La hoja recuerda en qué pantalla se abrió: al navegar deja de coincidir y
+  // se cierra sola, sin taparle al usuario la pantalla a la que acaba de ir.
+  const [abiertaEn, setAbiertaEn] = useState<string | null>(null);
+  const abierto = abiertaEn === pathname;
+  const setAbierto = (v: boolean | ((a: boolean) => boolean)) =>
+    setAbiertaEn((actual) => ((typeof v === "function" ? v(actual === pathname) : v) ? pathname : null));
+
+  useEffect(() => {
+    if (!abierto) return;
+    const cerrar = (e: KeyboardEvent) => e.key === "Escape" && setAbiertaEn(null);
+    window.addEventListener("keydown", cerrar);
+    return () => window.removeEventListener("keydown", cerrar);
+  }, [abierto]);
+
+  const principales = secciones.filter((s) => PRINCIPALES.includes(s.ruta));
+  // «Más» se marca cuando la pantalla actual es una de las que viven dentro.
+  const enMas = !principales.some((s) => s.ruta === pathname);
 
   return (
-    <nav className="barra-inferior" aria-label="Secciones">
-      {secciones.map((s) => (
-        <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
-          <Icono nombre={s.icono} tamano={20} />
-          {s.corta}
-        </NavLink>
-      ))}
-      <button onClick={() => void salir()}>
-        <Icono nombre="logout" tamano={20} />
-        salir
-      </button>
-    </nav>
+    <>
+      {abierto && (
+        <>
+          <div className="hoja-fondo" onClick={() => setAbierto(false)} aria-hidden />
+          <div className="hoja cristal" role="dialog" aria-label="Todas las secciones">
+            <div className="hoja-rejilla">
+              {secciones.map((s) => (
+                <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
+                  <Icono nombre={s.icono} tamano={20} />
+                  {s.etiqueta}
+                </NavLink>
+              ))}
+            </div>
+            <div className="hoja-pie">
+              <span className="texto-apagado">{usuario?.name ?? usuario?.email}</span>
+              <button className="btn btn-pequeno btn-fantasma" onClick={() => void salir()}>
+                <Icono nombre="logout" tamano={14} />
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      <nav className="barra-inferior" aria-label="Secciones">
+        {principales.map((s) => (
+          <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
+            <Icono nombre={s.icono} tamano={20} />
+            {s.corta}
+          </NavLink>
+        ))}
+        <button className={enMas || abierto ? "activo" : ""} onClick={() => setAbierto((a) => !a)} aria-expanded={abierto}>
+          <Icono nombre="list" tamano={20} />
+          más
+        </button>
+      </nav>
+    </>
   );
 }

@@ -402,3 +402,14 @@ export interface ResultadoDb {
   limit?: number;
   offset?: number;
 }
+
+export interface MensajeAsistente {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface RespuestaAsistente {
+  reply: string;
+  toolsUsed: string[];
+  navigateTo: string | null;
+}

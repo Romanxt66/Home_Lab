@@ -483,6 +483,47 @@ a.tarjeta-sub:hover { color: var(--acento); }
   .campo-fila { grid-template-columns: 1fr; }
 }
 
+/* ── Asistente ───────────────────────────────────────────────── */
+.asistente-boton {
+  position: fixed; right: 1.4rem; bottom: 1.4rem; z-index: 40;
+  display: grid; place-items: center; width: 3.2rem; height: 3.2rem;
+  border-radius: 50%; border: 1px solid var(--acento-borde);
+  background: var(--acento); color: #04120c; cursor: pointer;
+  box-shadow: 0 10px 30px -8px rgba(62, 224, 160, 0.55);
+  transition: transform 0.2s ease;
+}
+.asistente-boton:hover { transform: scale(1.06); }
+.asistente-boton.abierto { background: var(--superficie-2, #14201b); color: var(--texto); box-shadow: none; border-color: var(--borde-fuerte); }
+.asistente-panel {
+  position: fixed; right: 1.4rem; bottom: 5.2rem; z-index: 40;
+  width: min(25rem, calc(100vw - 2rem)); height: min(34rem, calc(100vh - 7.5rem));
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden;
+  background: rgba(9, 17, 14, 0.96); backdrop-filter: blur(20px);
+}
+.asistente-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.6rem; padding: 1rem 1.1rem 0.7rem; border-bottom: 1px solid var(--borde); }
+.asistente-cab h2 { margin: 0.1rem 0 0; font-family: var(--f-serif); font-weight: 400; font-size: 1.5rem; letter-spacing: -0.01em; }
+.asistente-cab h2 em { color: var(--acento); }
+.asistente-hilo { overflow-y: auto; padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.asistente-vacio { display: grid; gap: 0.8rem; }
+.asistente-vacio .fichas { flex-direction: column; align-items: flex-start; }
+.burbuja { max-width: 88%; padding: 0.6rem 0.8rem; border-radius: 14px; font-size: 0.84rem; line-height: 1.45; display: grid; gap: 0.35rem; overflow-wrap: anywhere; }
+.burbuja p { margin: 0; white-space: pre-wrap; }
+.burbuja-yo { align-self: flex-end; background: var(--acento-suave); border: 1px solid var(--acento-borde); border-bottom-right-radius: 4px; }
+.burbuja-ia { align-self: flex-start; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--borde); border-bottom-left-radius: 4px; }
+.burbuja-error { border-color: var(--peligro); color: var(--peligro); }
+.burbuja-herramientas { display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--f-mono); font-size: 0.64rem; color: var(--texto-3); }
+.puntos { display: inline-flex; gap: 0.25rem; padding: 0.2rem 0; }
+.puntos i { width: 0.35rem; height: 0.35rem; border-radius: 50%; background: var(--texto-3); animation: puntos 1.2s infinite ease-in-out; }
+.puntos i:nth-child(2) { animation-delay: 0.15s; }
+.puntos i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes puntos { 0%, 80%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+.asistente-pie { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem; align-items: end; padding: 0.7rem 0.9rem 0.9rem; border-top: 1px solid var(--borde); }
+.asistente-pie textarea { resize: none; max-height: 7rem; field-sizing: content; }
+.btn-icono { width: 2.5rem; height: 2.5rem; padding: 0; display: grid; place-items: center; }
+
+/* ── Hoja «más» (móvil) ──────────────────────────────────────── */
+.hoja-fondo, .hoja { display: none; }
+
 /* ── Interruptor ─────────────────────────────────────────────── */
 .interruptor {
   width: 40px; height: 22px; flex: none;
@@ -870,6 +911,22 @@ input:focus, select:focus, textarea:focus {
     cursor: pointer;
   }
   .barra-inferior a.activo { color: var(--acento); background: var(--acento-suave); }
+  /* El asistente sube por encima de la barra inferior. */
+  .asistente-boton { right: 0.9rem; bottom: calc(5.6rem + env(safe-area-inset-bottom)); width: 2.9rem; height: 2.9rem; }
+  .asistente-panel { right: 0.75rem; left: 0.75rem; width: auto; bottom: calc(8.8rem + env(safe-area-inset-bottom)); height: min(32rem, calc(100vh - 11rem)); }
+
+  .hoja-fondo { display: block; position: fixed; inset: 0; z-index: 44; background: rgba(0, 0, 0, 0.5); }
+  .hoja {
+    display: grid; gap: 0.9rem; position: fixed; left: 0.75rem; right: 0.75rem; z-index: 45;
+    bottom: calc(5.4rem + env(safe-area-inset-bottom)); padding: 1rem;
+    background: rgba(9, 17, 14, 0.97); backdrop-filter: blur(18px);
+  }
+  .hoja-rejilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+  .hoja-rejilla a { display: grid; justify-items: center; gap: 0.3rem; padding: 0.7rem 0.3rem; border-radius: 14px; border: 1px solid var(--borde); color: var(--texto-2); font-size: 0.7rem; text-align: center; text-decoration: none; }
+  .hoja-rejilla a.activo { color: var(--acento); background: var(--acento-suave); border-color: var(--acento-borde); }
+  .hoja-pie { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; padding-top: 0.7rem; border-top: 1px solid var(--borde); font-size: 0.78rem; }
+  .barra-inferior { z-index: 46; }
+  .barra-inferior button.activo { color: var(--acento); background: var(--acento-suave); }
 }
 
 /* Quien pide menos movimiento, lo tiene: nada de entradas, latidos ni brillos. */
