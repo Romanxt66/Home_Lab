@@ -420,6 +420,12 @@ a.tarjeta-sub:hover { color: var(--acento); }
 .accion-bloque-cab select { flex: 1; min-width: 0; }
 .accion:disabled { opacity: 0.3; cursor: default; }
 
+/* ── Generador de despliegues ───────────────────────────────── */
+.notas { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.3rem; font-size: 0.82rem; color: var(--texto-3); }
+.comandos { margin: 0; display: grid; gap: 0.5rem; }
+.comandos > div { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 0.8rem; align-items: baseline; }
+.comandos dd { margin: 0; font-family: var(--f-mono); font-size: 0.78rem; color: var(--texto-2); overflow-wrap: anywhere; }
+
 /* ── Interruptor ─────────────────────────────────────────────── */
 .interruptor {
   width: 40px; height: 22px; flex: none;

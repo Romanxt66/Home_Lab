@@ -4,6 +4,7 @@ import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
 import { Calendario } from "./pages/Calendario";
 import { Automatizaciones } from "./pages/Automatizaciones";
+import { Despliegues } from "./pages/Despliegues";
 import { Correo } from "./pages/Correo";
 import { GitHub } from "./pages/GitHub";
 import { Inicio } from "./pages/Inicio";
@@ -21,6 +22,7 @@ const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreI
   { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
   { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar" },
   { ruta: "/automations", etiqueta: "Automatizaciones", corta: "reglas", icono: "bolt" },
+  { ruta: "/deploygen", etiqueta: "Despliegues", corta: "generar", icono: "rocket" },
   { ruta: "/email-automation", etiqueta: "Correo", corta: "correo", icono: "mail" },
   { ruta: "/github", etiqueta: "GitHub", corta: "github", icono: "git" },
   { ruta: "/telegram", etiqueta: "Telegram", corta: "avisos", icono: "telegram" },
@@ -69,6 +71,7 @@ function Raiz() {
           <Route path="/calendar" element={<Calendario />} />
           <Route path="/scheduler" element={<Tareas />} />
           <Route path="/automations" element={<Automatizaciones />} />
+          <Route path="/deploygen" element={<Despliegues />} />
           <Route path="/email-automation" element={<Correo />} />
           <Route path="/github" element={<GitHub />} />
           <Route path="/telegram" element={<Telegram />} />
