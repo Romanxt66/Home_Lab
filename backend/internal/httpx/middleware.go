@@ -24,7 +24,7 @@ func CORS(origenes []string) gin.HandlerFunc {
 		if origen != "" && slices.Contains(origenes, origen) {
 			c.Header("Access-Control-Allow-Origin", origen)
 			c.Header("Access-Control-Allow-Credentials", "true")
-			c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+			c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
 			c.Header("Access-Control-Allow-Headers", "Content-Type")
 			c.Header("Vary", "Origin")
 		}

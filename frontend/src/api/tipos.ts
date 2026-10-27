@@ -236,3 +236,91 @@ export interface AnalisisDespliegue {
   dockerfile: string;
   compose: string | null;
 }
+
+export interface ConfigCoolify {
+  id: string;
+  baseUrl: string;
+  hasToken: boolean;
+}
+
+export interface AppCoolify {
+  uuid: string;
+  name: string;
+  description: string | null;
+  fqdn: string | null;
+  status: string;
+  state: string;
+  stateLabel: string;
+  healthy: boolean | null;
+  gitRepository: string | null;
+  gitBranch: string | null;
+  buildPack: string | null;
+  projectName: string | null;
+  environmentName: string | null;
+  portsExposes: string;
+  installCommand: string;
+  buildCommand: string;
+  startCommand: string;
+  baseDirectory: string;
+}
+
+export interface RecursoCoolify {
+  uuid: string;
+  name: string;
+  type: string;
+  status: string;
+  state: string;
+  stateLabel: string;
+}
+
+export interface ProyectoCoolify {
+  uuid: string;
+  name: string;
+  description: string | null;
+}
+
+export interface ServidorCoolify {
+  uuid: string;
+  name: string;
+  ip: string;
+  reachable: boolean;
+}
+
+export interface ResumenCoolify {
+  apps: AppCoolify[];
+  projects: ProyectoCoolify[];
+  servers: ServidorCoolify[];
+  databases: RecursoCoolify[];
+  services: RecursoCoolify[];
+}
+
+export interface CatalogoCoolify {
+  databaseTypes: { id: string; label: string }[];
+  buildPacks: { id: string; label: string }[];
+}
+
+export interface DespliegueCoolify {
+  uuid: string;
+  applicationName: string;
+  serverName: string;
+  status: "queued" | "in_progress" | "finished" | "failed" | "cancelled";
+  statusLabel: string;
+  rawStatus: string;
+  commit: string;
+  commitMessage: string;
+  createdAt: string;
+}
+
+export interface VariableCoolify {
+  uuid: string;
+  key: string;
+  value: string;
+  isBuildTime: boolean;
+  isPreview: boolean;
+  isLiteral: boolean;
+}
+
+export interface EntornoCoolify {
+  uuid: string;
+  name: string;
+}
