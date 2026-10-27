@@ -21,6 +21,8 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/config"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
+	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
+	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
 	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
 )
 
@@ -41,13 +43,28 @@ func main() {
 
 	authHandler := auth.NewHandler(auth.NewRepo(db), sessions, cfg.Production)
 
+	// Las notificaciones se cablean antes porque uptime depende de ellas:
+	// cuando un monitor se cae, el aviso sale por aquí.
+	notificationService := notifications.NewService(
+		notifications.NewPostgresRepo(db),
+		notifications.NewTelegramSender(),
+	)
+	notificationHandler := notifications.NewHandler(notificationService)
+
 	uptimeService := uptime.NewService(
 		uptime.NewPostgresMonitorRepo(db),
 		uptime.NewPostgresCheckRepo(db),
 		uptime.NewHTTPProber(),
-		&uptime.LogNotifier{Log: log.Printf},
+		notifications.NewServicioNotifier(notificationService),
 	)
 	uptimeHandler := uptime.NewHandler(uptimeService)
+
+	inventoryService := inventory.NewService(
+		inventory.NewPostgresLocationRepo(db),
+		inventory.NewPostgresItemRepo(db),
+		inventory.NewPostgresMovementRepo(db),
+	)
+	inventoryHandler := inventory.NewHandler(inventoryService)
 
 	// ── Rutas ──────────────────────────────────────────────────────────────
 	if cfg.Production {
@@ -75,6 +92,8 @@ func main() {
 	privadas.Use(httpx.RequireAuth(sessions))
 	privadas.GET("/auth/me", authHandler.Me)
 	uptimeHandler.Register(privadas.Group("/uptime"))
+	notificationHandler.Register(privadas.Group("/notifications"))
+	inventoryHandler.Register(privadas.Group("/inventory"))
 
 	// Disparador del cron. No lleva sesión porque lo llama una máquina; se
 	// protege con un secreto y, si no está configurado, falla cerrado.

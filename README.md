@@ -11,13 +11,18 @@ módulo hasta poder sustituirlo.
 
 ## Estado
 
-| Módulo | Estado |
-|---|---|
-| Autenticación | Portado |
-| Monitor de uptime | Portado |
-| Los otros 13 | Pendientes |
+| Módulo | Estado | Endpoints |
+|---|---|---|
+| Autenticación | Portado | 3 |
+| Monitor de uptime | Portado | 6 |
+| Notificaciones (Telegram) | Portado | 4 |
+| Inventario | Portado | 14 |
+| Los otros 14 | Pendientes | — |
 
-Del Lab quedan por portar 112 de las 117 acciones y 17 de los 18 módulos.
+27 de los 117 endpoints del Lab. Quedan por portar: coolify (24), db-admin (15),
+finance (18), email (6), scheduler (6), n8n (5), users (4), github (4),
+automations (4), calendar (3), deploygen (2), scraper (1), assistant (1) y el
+acceso con Google.
 
 ## Por qué Go
 
