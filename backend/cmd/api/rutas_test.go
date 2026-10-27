@@ -13,14 +13,10 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/dbadmin"
 	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
-	"github.com/Romanxt66/Home_Lab/backend/internal/finance"
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
-	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
-	"github.com/Romanxt66/Home_Lab/backend/internal/n8n"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scheduler"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
-	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
 )
 
@@ -52,11 +48,8 @@ func TestNingunaRutaChocaConOtra(t *testing.T) {
 	privadas := api.Group("")
 	privadas.GET("/auth/me", func(*gin.Context) {})
 
-	uptime.NewHandler(nil).Register(privadas.Group("/uptime"))
 	notifications.NewHandler(nil).Register(privadas.Group("/notifications"))
-	inventory.NewHandler(nil).Register(privadas.Group("/inventory"))
 	scraper.NewHandler(nil).Register(privadas.Group("/scraper"))
-	n8n.NewHandler(nil).Register(privadas.Group("/n8n"))
 	scheduler.NewHandler(nil).Register(privadas.Group("/scheduler"))
 	email.NewHandler(nil).Register(privadas.Group("/email"))
 	email.NewOAuthHandler(email.OAuthConfig{}, nil, nil, false).Register(privadas.Group("/email"))
@@ -64,17 +57,15 @@ func TestNingunaRutaChocaConOtra(t *testing.T) {
 	automations.NewHandler(nil).Register(privadas.Group("/automations"))
 	github.NewHandler(nil).Register(privadas.Group("/github"))
 	deploygen.NewHandler(nil).Register(privadas.Group("/deploygen"))
-	finance.NewHandler(nil).Register(privadas.Group("/finance"))
 	coolify.NewHandler(nil).Register(privadas.Group("/coolify"))
 	dbadmin.NewHandler(nil).Register(privadas.Group("/db-admin"))
 	assistant.NewHandler(nil).Register(privadas.Group("/assistant"))
 	users.NewHandler(nil).Register(privadas.Group("/users"))
 
-	r.POST("/api/cron/uptime", func(*gin.Context) {})
 	r.POST("/api/cron/scheduler", func(*gin.Context) {})
 
 	rutas := r.Routes()
-	if len(rutas) < 50 {
+	if len(rutas) < 40 {
 		t.Errorf("solo se registraron %d rutas; ¿falta cablear algún módulo?", len(rutas))
 	}
 

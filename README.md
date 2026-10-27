@@ -11,18 +11,25 @@ módulo hasta poder sustituirlo.
 
 ## Estado
 
-| Módulo | Estado | Endpoints |
-|---|---|---|
-| Autenticación | Portado | 3 |
-| Monitor de uptime | Portado | 6 |
-| Notificaciones (Telegram) | Portado | 4 |
-| Inventario | Portado | 14 |
-| Los otros 14 | Pendientes | — |
+El backend cubre los módulos del Lab **salvo cuatro que se descartaron a
+propósito**: Inventario, Finanzas, Monitor de uptime y n8n. Su código se
+quitó de este repositorio (queda en el historial de git) y sus tablas no se
+tocan: el Lab original sigue usándolas.
 
-27 de los 117 endpoints del Lab. Quedan por portar: coolify (24), db-admin (15),
-finance (18), email (6), scheduler (6), n8n (5), users (4), github (4),
-automations (4), calendar (3), deploygen (2), scraper (1), assistant (1) y el
-acceso con Google.
+| Módulo | Estado |
+|---|---|
+| Autenticación (contraseña y Google) | Portado |
+| Usuarios | Portado |
+| Notificaciones (Telegram) | Portado |
+| Correo, calendario, tareas programadas | Portado |
+| Automatizaciones | Portado |
+| Scraper, GitHub, generador de despliegues | Portado |
+| Coolify, administrador de bases de datos | Portado |
+| Asistente (Gemini) | Portado |
+
+El frontend tiene solo el acceso y una pantalla de inicio: las pantallas de
+los módulos están por hacer. El webhook de n8n sigue existiendo como *acción*
+de las automatizaciones; lo que se quitó es el panel de n8n.
 
 ## Por qué Go
 
@@ -44,11 +51,10 @@ backend/
     ├── database/            Conexión a PostgreSQL
     ├── httpx/               CORS, autenticación, respuestas de error
     ├── auth/                Sesiones firmadas y contraseñas
-    └── uptime/
-        ├── domain.go        Lógica pura: validar, decidir caído, transiciones
+    └── <módulo>/
+        ├── domain.go        Lógica pura: validar, decidir, transiciones
         ├── service.go       Orquestación + interfaces de los puertos
         ├── postgres.go      Adaptador de base de datos
-        ├── probe.go         Adaptador HTTP
         └── http.go          DTOs y rutas de Gin
 ```
 
@@ -115,12 +121,17 @@ La aplicación queda en http://localhost:5173 y la API en http://localhost:8080.
 cd backend && go test ./...
 ```
 
-Cubren el dominio de uptime (validación, decisión de caído, transiciones de
-estado, porcentaje de disponibilidad) y la autenticación (firma de sesiones,
-manipulación del token, caducidad y formatos de contraseña inválidos).
+Cada módulo prueba su dominio y sus guardarraíles (permisos, validaciones,
+barreras de seguridad); la autenticación cubre la firma de sesiones, la
+manipulación del token y la caducidad.
 
-## El cron
+## El reloj
 
-`POST /api/cron/uptime` lanza las comprobaciones pendientes. Va protegido por
+`POST /api/cron/scheduler` lanza las tareas pendientes. Va protegido por
 `CRON_SECRET` y, si no está configurado en producción, **no se ejecuta**: es
 preferible que el cron no corra a que corra abierto.
+
+El binario también trae un reloj interno (tareas programadas y recordatorios
+del calendario), apagado por defecto: se enciende con `SCHEDULER_INTERNO=1`.
+Hay que dejarlo apagado mientras el Lab siga desplegado, porque su cron
+ejecuta las mismas tareas sobre la misma base y cada aviso saldría duplicado.

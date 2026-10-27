@@ -69,10 +69,10 @@ func TestNavegarSoloAAlgoQueExiste(t *testing.T) {
 	h := herramienta(t, "navigate_to_module")
 
 	c := contexto("user")
-	if salida := h.Ejecutar(context.Background(), map[string]any{"slug": "finance"}, c); strings.Contains(salida, "Error") {
+	if salida := h.Ejecutar(context.Background(), map[string]any{"slug": "calendar"}, c); strings.Contains(salida, "Error") {
 		t.Errorf("rechazó un destino válido: %s", salida)
 	}
-	if c.Efectos.Destino() != "finance" {
+	if c.Efectos.Destino() != "calendar" {
 		t.Errorf("no dejó el destino: %q", c.Efectos.Destino())
 	}
 
@@ -132,8 +132,8 @@ func TestNoHayHerramientasRepetidas(t *testing.T) {
 		}
 		vistas[h.Nombre] = true
 	}
-	if len(vistas) < 25 {
-		t.Errorf("solo hay %d herramientas; el Lab tenía unas treinta", len(vistas))
+	if len(vistas) < 15 {
+		t.Errorf("solo hay %d herramientas; quedan unas veinte tras quitar cuatro módulos", len(vistas))
 	}
 }
 

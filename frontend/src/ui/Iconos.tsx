@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 /** Trazos en una caja de 24×24. Para uno nuevo, basta con añadirlo aquí. */
 const TRAZOS = {
+  home: "M4 11l8-7 8 7M6 10v10h12V10M10 20v-6h4v6",
   pulse: "M3 12h4l2.5-6 4 12L16 12h5",
   plus: "M12 5v14M5 12h14",
   refresh: "M20 11a8 8 0 0 0-14.5-3.5M4 4v4h4M4 13a8 8 0 0 0 14.5 3.5M20 20v-4h-4",

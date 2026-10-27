@@ -38,7 +38,7 @@ func Handler() http.Handler {
 }
 
 // spa sirve archivos estáticos y, para cualquier ruta que no exista, devuelve
-// index.html. Es lo que necesita una aplicación de una sola página: /uptime no
+// index.html. Es lo que necesita una aplicación de una sola página: /calendar no
 // es un archivo, lo resuelve el enrutador de React en el navegador.
 type spa struct {
 	archivos http.FileSystem

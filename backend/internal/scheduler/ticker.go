@@ -9,7 +9,7 @@ import (
 // ahora existe para poder fijar el reloj en las pruebas.
 var ahora = time.Now
 
-// Tarea es algo que hay que lanzar cada minuto. Uptime también entra aquí.
+// Tarea es algo que hay que lanzar cada minuto. Los recordatorios del calendario también entran aquí.
 type Tarea struct {
 	Nombre string
 	Correr func(ctx context.Context) error

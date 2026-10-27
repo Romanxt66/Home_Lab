@@ -13,7 +13,7 @@ func accionTelegram(msg string) Accion {
 }
 
 func TestValidarRegla(t *testing.T) {
-	buena := Regla{Name: "  Avisar  ", Trigger: UptimeCaido, Actions: []Accion{accionTelegram("hola")}}
+	buena := Regla{Name: "  Avisar  ", Trigger: UsuarioRegistrado, Actions: []Accion{accionTelegram("hola")}}
 	res := ValidarRegla(buena)
 	if !res.OK {
 		t.Fatalf("rechazó una regla correcta: %s", res.Error)
@@ -23,11 +23,11 @@ func TestValidarRegla(t *testing.T) {
 	}
 
 	casos := map[string]Regla{
-		"sin nombre":           {Trigger: UptimeCaido, Actions: []Accion{accionTelegram("x")}},
+		"sin nombre":           {Trigger: UsuarioRegistrado, Actions: []Accion{accionTelegram("x")}},
 		"disparador inventado": {Name: "A", Trigger: Disparador("lluvia"), Actions: []Accion{accionTelegram("x")}},
-		"sin acciones":         {Name: "A", Trigger: UptimeCaido},
-		"acción vacía":         {Name: "A", Trigger: UptimeCaido, Actions: []Accion{accionTelegram("  ")}},
-		"acción desconocida":   {Name: "A", Trigger: UptimeCaido, Actions: []Accion{{Type: TipoAccion("bailar")}}},
+		"sin acciones":         {Name: "A", Trigger: UsuarioRegistrado},
+		"acción vacía":         {Name: "A", Trigger: UsuarioRegistrado, Actions: []Accion{accionTelegram("  ")}},
+		"acción desconocida":   {Name: "A", Trigger: UsuarioRegistrado, Actions: []Accion{{Type: TipoAccion("bailar")}}},
 	}
 	for nombre, r := range casos {
 		if ValidarRegla(r).OK {
@@ -38,7 +38,7 @@ func TestValidarRegla(t *testing.T) {
 
 // Una regla puede tener varias acciones, así que el error debe decir cuál.
 func TestElErrorDiceQueAccionFalla(t *testing.T) {
-	r := Regla{Name: "A", Trigger: UptimeCaido, Actions: []Accion{
+	r := Regla{Name: "A", Trigger: UsuarioRegistrado, Actions: []Accion{
 		accionTelegram("vale"),
 		accionTelegram("   "),
 	}}
@@ -54,7 +54,7 @@ func TestElErrorDiceQueAccionFalla(t *testing.T) {
 
 func TestValidarAccionDeWebhook(t *testing.T) {
 	webhook := func(u string) Regla {
-		return Regla{Name: "A", Trigger: UptimeCaido, Actions: []Accion{
+		return Regla{Name: "A", Trigger: UsuarioRegistrado, Actions: []Accion{
 			{Type: WebhookAccion, Config: map[string]string{"webhookUrl": u}},
 		}}
 	}
@@ -71,7 +71,7 @@ func TestValidarAccionDeWebhook(t *testing.T) {
 
 func TestValidarAccionDeCalendario(t *testing.T) {
 	evento := func(cfg map[string]string) Regla {
-		return Regla{Name: "A", Trigger: UptimeCaido, Actions: []Accion{{Type: EventoAccion, Config: cfg}}}
+		return Regla{Name: "A", Trigger: UsuarioRegistrado, Actions: []Accion{{Type: EventoAccion, Config: cfg}}}
 	}
 
 	if !ValidarRegla(evento(map[string]string{"title": "Revisar", "daysFromNow": "3"})).OK {
@@ -166,13 +166,13 @@ func rellenarSimple(texto string, valores map[string]string) string {
 
 func TestDispararRellenaLasVariables(t *testing.T) {
 	repo := &repoFalso{reglas: []Regla{{
-		ID: "r1", Name: "Avisar", Trigger: UptimeCaido, Active: true,
+		ID: "r1", Name: "Avisar", Trigger: UsuarioRegistrado, Active: true,
 		Actions: []Accion{accionTelegram("Se cayó {{monitor}} ({{url}})")},
 	}}}
 	avisos := &avisadorFalso{}
 
 	svc := NewService(repo, avisos, &agendaFalsa{}, &webhookFalso{}, rellenarSimple)
-	svc.Disparar(context.Background(), UptimeCaido, map[string]string{
+	svc.Disparar(context.Background(), UsuarioRegistrado, map[string]string{
 		"monitor": "La web", "url": "https://x.com",
 	})
 
@@ -191,8 +191,8 @@ func TestDispararRellenaLasVariables(t *testing.T) {
 // importantes, así que una regla rota no puede tumbarlos.
 func TestUnaReglaQueFallaNoRompeAQuienLaDispara(t *testing.T) {
 	repo := &repoFalso{reglas: []Regla{
-		{ID: "r1", Name: "Rota", Trigger: UptimeCaido, Actions: []Accion{accionTelegram("x")}},
-		{ID: "r2", Name: "Buena", Trigger: UptimeCaido, Actions: []Accion{accionTelegram("y")}},
+		{ID: "r1", Name: "Rota", Trigger: UsuarioRegistrado, Actions: []Accion{accionTelegram("x")}},
+		{ID: "r2", Name: "Buena", Trigger: UsuarioRegistrado, Actions: []Accion{accionTelegram("y")}},
 	}}
 	avisos := &avisadorFalso{fallo: errors.New("telegram caído")}
 
@@ -200,7 +200,7 @@ func TestUnaReglaQueFallaNoRompeAQuienLaDispara(t *testing.T) {
 
 	// No devuelve error: si lo hiciera, quien lo llama tendría que decidir
 	// qué hacer en mitad de un login o de un tic del reloj.
-	svc.Disparar(context.Background(), UptimeCaido, nil)
+	svc.Disparar(context.Background(), UsuarioRegistrado, nil)
 
 	if len(repo.anotados) != 2 {
 		t.Fatalf("anotó %d ejecuciones, quería 2 (las dos reglas)", len(repo.anotados))
@@ -219,7 +219,7 @@ func TestUnaReglaQueFallaNoRompeAQuienLaDispara(t *testing.T) {
 // depende de la primera, seguir sería peor.
 func TestSeParaEnLaPrimeraAccionQueFalla(t *testing.T) {
 	repo := &repoFalso{reglas: []Regla{{
-		ID: "r1", Trigger: UptimeCaido,
+		ID: "r1", Trigger: UsuarioRegistrado,
 		Actions: []Accion{
 			accionTelegram("primera"),
 			{Type: EventoAccion, Config: map[string]string{"title": "no debería crearse"}},
@@ -229,7 +229,7 @@ func TestSeParaEnLaPrimeraAccionQueFalla(t *testing.T) {
 	agenda := &agendaFalsa{}
 
 	NewService(repo, avisos, agenda, &webhookFalso{}, rellenarSimple).
-		Disparar(context.Background(), UptimeCaido, nil)
+		Disparar(context.Background(), UsuarioRegistrado, nil)
 
 	if len(agenda.titulos) != 0 {
 		t.Errorf("siguió tras el fallo y creó %v", agenda.titulos)
@@ -241,7 +241,7 @@ func TestSinReglasLegiblesNoPasaNada(t *testing.T) {
 	repo := &repoFalso{fallo: errors.New("sin conexión")}
 	svc := NewService(repo, &avisadorFalso{}, &agendaFalsa{}, &webhookFalso{}, rellenarSimple)
 
-	svc.Disparar(context.Background(), UptimeCaido, nil)
+	svc.Disparar(context.Background(), UsuarioRegistrado, nil)
 
 	if len(repo.anotados) != 0 {
 		t.Error("anotó ejecuciones sin haber leído reglas")
@@ -271,7 +271,7 @@ func TestElWebhookLlevaElDisparadorYLasVariables(t *testing.T) {
 
 func TestElEventoSeCreaConLosDiasDeDesplazamiento(t *testing.T) {
 	repo := &repoFalso{reglas: []Regla{{
-		ID: "r1", Trigger: UptimeCaido,
+		ID: "r1", Trigger: UsuarioRegistrado,
 		Actions: []Accion{{Type: EventoAccion, Config: map[string]string{
 			"title": "Revisar {{monitor}}", "daysFromNow": "3",
 		}}},
@@ -280,7 +280,7 @@ func TestElEventoSeCreaConLosDiasDeDesplazamiento(t *testing.T) {
 
 	antes := time.Now()
 	NewService(repo, &avisadorFalso{}, agenda, &webhookFalso{}, rellenarSimple).
-		Disparar(context.Background(), UptimeCaido, map[string]string{"monitor": "La web"})
+		Disparar(context.Background(), UsuarioRegistrado, map[string]string{"monitor": "La web"})
 
 	if len(agenda.titulos) != 1 || agenda.titulos[0] != "Revisar La web" {
 		t.Fatalf("títulos = %v", agenda.titulos)

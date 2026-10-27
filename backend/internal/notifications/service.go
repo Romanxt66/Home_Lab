@@ -29,7 +29,7 @@ func NewService(repo ConfigRepo, sender Sender) *Service {
 	return &Service{repo: repo, sender: sender}
 }
 
-// Send es el caso de uso que usan los demás módulos (uptime, automatizaciones).
+// Send es el caso de uso que usan los demás módulos (calendario, automatizaciones).
 // Si no hay configuración activa lo dice con un mensaje accionable en vez de
 // fallar en silencio.
 func (s *Service) Send(ctx context.Context, message string) kernel.Result[struct{}] {

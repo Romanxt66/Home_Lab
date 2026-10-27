@@ -28,15 +28,11 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/dbadmin"
 	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
-	"github.com/Romanxt66/Home_Lab/backend/internal/finance"
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
-	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
-	"github.com/Romanxt66/Home_Lab/backend/internal/n8n"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scheduler"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
-	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
 	"github.com/Romanxt66/Home_Lab/backend/internal/web"
 )
@@ -59,20 +55,13 @@ func main() {
 	authRepo := auth.NewRepo(db)
 	authHandler := auth.NewHandler(authRepo, sessions, cfg.Production)
 
-	// Las notificaciones se cablean antes porque uptime depende de ellas:
-	// cuando un monitor se cae, el aviso sale por aquí.
+	// Las notificaciones se cablean antes: el calendario, las automatizaciones
+	// y el acceso las usan para avisar.
 	notificationService := notifications.NewService(
 		notifications.NewPostgresRepo(db),
 		notifications.NewTelegramSender(),
 	)
 	notificationHandler := notifications.NewHandler(notificationService)
-
-	inventoryService := inventory.NewService(
-		inventory.NewPostgresLocationRepo(db),
-		inventory.NewPostgresItemRepo(db),
-		inventory.NewPostgresMovementRepo(db),
-	)
-	inventoryHandler := inventory.NewHandler(inventoryService)
 
 	userService := users.NewService(users.NewPostgresRepo(db))
 	userHandler := users.NewHandler(userService)
@@ -114,16 +103,8 @@ func main() {
 		},
 	))
 
-	n8nService := n8n.NewService(
-		n8n.NewRESTCliente(),
-		n8n.NewPostgresRepo(db),
-	)
-	n8nHandler := n8n.NewHandler(n8nService)
-
-	// El orden importa: el calendario necesita las notificaciones, las
-	// automatizaciones necesitan el calendario, y uptime necesita las
-	// automatizaciones para que salten las reglas cuando algo se cae.
-	// El calendario avisa por el mismo canal que todo lo demás.
+	// El orden importa: el calendario necesita las notificaciones y las
+	// automatizaciones necesitan el calendario.
 	calendarService := calendar.NewService(
 		calendar.NewPostgresRepo(db),
 		notifications.NewServicioNotifier(notificationService),
@@ -142,26 +123,6 @@ func main() {
 	)
 	automationHandler := automations.NewHandler(automationService)
 	puenteAutomatizaciones := &puenteDeAutomatizaciones{svc: automationService}
-
-	financeService := finance.NewService(
-		finance.NewPostgresCuentaRepo(db),
-		finance.NewPostgresCategoriaRepo(db),
-		finance.NewPostgresMovimientoRepo(db),
-		finance.NewPostgresPresupuestoRepo(db),
-		finance.NewPostgresRecurrenteRepo(db),
-		notifications.NewServicioNotifier(notificationService),
-		puenteAutomatizaciones,
-	)
-	financeHandler := finance.NewHandler(financeService)
-
-	uptimeService := uptime.NewService(
-		uptime.NewPostgresMonitorRepo(db),
-		uptime.NewPostgresCheckRepo(db),
-		uptime.NewHTTPProber(),
-		notifications.NewServicioNotifier(notificationService),
-		puenteAutomatizaciones,
-	)
-	uptimeHandler := uptime.NewHandler(uptimeService)
 
 	cuentasGmail := email.NewPostgresCuentaRepo(db)
 	gmailCfg := email.OAuthConfig{
@@ -196,10 +157,10 @@ func main() {
 			APIKey: cfg.GeminiAPIKey, Model: cfg.GeminiModel,
 		}),
 		construirHerramientas(Servicios{
-			Finance: financeService, Uptime: uptimeService, Users: userService,
-			Calendar: calendarService, Inventory: inventoryService,
+			Users:       userService,
+			Calendar:    calendarService,
 			Automations: automationService, DBAdmin: dbadminService,
-			Coolify: coolifyService, GitHub: githubService, N8n: n8nService,
+			Coolify: coolifyService, GitHub: githubService,
 			Destinos: destinosDelAsistente,
 		}),
 	))
@@ -284,14 +245,10 @@ func main() {
 	privadas := api.Group("")
 	privadas.Use(httpx.RequireAuth(sessions))
 	privadas.GET("/auth/me", authHandler.Me)
-	uptimeHandler.Register(privadas.Group("/uptime"))
 	notificationHandler.Register(privadas.Group("/notifications"))
-	inventoryHandler.Register(privadas.Group("/inventory"))
 	scraperHandler.Register(privadas.Group("/scraper"))
-	n8nHandler.Register(privadas.Group("/n8n"))
 	githubHandler.Register(privadas.Group("/github"))
 	deploygenHandler.Register(privadas.Group("/deploygen"))
-	financeHandler.Register(privadas.Group("/finance"))
 	coolifyHandler.Register(privadas.Group("/coolify"))
 	dbadminHandler.Register(privadas.Group("/db-admin"))
 	asistente.Register(privadas.Group("/assistant"))
@@ -312,7 +269,6 @@ func main() {
 	// Disparador del cron. No lleva sesión porque lo llama una máquina; se
 	// protege con un secreto y, si no está configurado, falla cerrado.
 	cron := cronAuth(os.Getenv("CRON_SECRET"), cfg.Production)
-	r.POST("/api/cron/uptime", cron, uptimeHandler.RunDue)
 	r.POST("/api/cron/scheduler", cron, schedulerHandler.RunDue)
 
 	// La interfaz, si se incrustó al compilar. En desarrollo no está y la
@@ -342,23 +298,6 @@ func main() {
 	defer pararReloj()
 
 	if os.Getenv("SCHEDULER_INTERNO") == "1" {
-		// La tarea de uptime se arma aquí y no dentro del módulo, para que
-		// uptime no tenga que conocer al planificador.
-		tareaUptime := scheduler.Tarea{
-			Nombre: "monitores de uptime",
-			Correr: func(ctx context.Context) error {
-				resumen, err := uptimeService.RunDueChecks(ctx, time.Now())
-				if err != nil {
-					return err
-				}
-				if resumen.Down > 0 || resumen.Recovered > 0 {
-					log.Printf("uptime: %d comprobados, %d caídos, %d recuperados",
-						resumen.Checked, resumen.Down, resumen.Recovered)
-				}
-				return nil
-			},
-		}
-
 		tareaRecordatorios := scheduler.Tarea{
 			Nombre: "recordatorios del calendario",
 			Correr: func(ctx context.Context) error {
@@ -374,31 +313,11 @@ func main() {
 			},
 		}
 
-		// Los pagos recurrentes van al día, no al minuto, así que con una
-		// pasada por hora sobra; el ticker es de un minuto, y la propia
-		// función es idempotente, así que pasar de más no duplica nada.
-		tareaRecurrentes := scheduler.Tarea{
-			Nombre: "pagos recurrentes",
-			Correr: func(ctx context.Context) error {
-				resumen, err := financeService.ProcesarRecurrentes(ctx, time.Now())
-				if err != nil {
-					return err
-				}
-				if resumen.Creados > 0 || resumen.Avisados > 0 {
-					log.Printf("finanzas: %d cargos creados, %d avisos enviados",
-						resumen.Creados, resumen.Avisados)
-				}
-				return nil
-			},
-		}
-
 		go scheduler.NewTicker(
 			schedulerService.TareaDeJobs(),
-			tareaUptime,
 			tareaRecordatorios,
-			tareaRecurrentes,
 		).Arrancar(ctxReloj)
-		log.Println("reloj interno encendido: tareas y uptime cada minuto")
+		log.Println("reloj interno encendido: tareas y recordatorios cada minuto")
 	} else {
 		log.Println("reloj interno apagado (SCHEDULER_INTERNO=1 para encenderlo)")
 	}
@@ -478,7 +397,7 @@ func (a *agendaDeAutomatizaciones) CrearEvento(ctx context.Context, titulo strin
 	return nil
 }
 
-// puenteDeAutomatizaciones deja que auth, uptime y finanzas disparen reglas
+// puenteDeAutomatizaciones deja que auth dispare reglas
 // sin conocer el tipo Disparador. Vive aquí, en la raíz de composición, que
 // es donde deben quedarse las traducciones entre módulos.
 type puenteDeAutomatizaciones struct {
@@ -498,12 +417,8 @@ var destinosDelAsistente = []Destino{
 	{"calendar", "Calendario"},
 	{"telegram", "Telegram"},
 	{"db-admin", "DB Admin"},
-	{"finance", "Finanzas"},
-	{"inventory", "Inventario"},
 	{"github", "GitHub"},
 	{"coolify", "Despliegues (Coolify)"},
-	{"uptime", "Monitor de Uptime"},
 	{"users", "Usuarios"},
-	{"n8n", "n8n"},
 	{"automations", "Automatizaciones"},
 }

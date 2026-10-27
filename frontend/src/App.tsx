@@ -2,14 +2,14 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-do
 
 import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
-import { Uptime } from "./pages/Uptime";
+import { Inicio } from "./pages/Inicio";
 import { Icono } from "./ui/Iconos";
 import type { NombreIcono } from "./ui/Iconos";
 import { Marca } from "./ui/Marca";
 
 /** Las secciones del panel. Añadir un módulo es añadir una línea aquí. */
 const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono }[] = [
-  { ruta: "/uptime", etiqueta: "Monitor de uptime", corta: "uptime", icono: "pulse" },
+  { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
 ];
 
 export default function App() {
@@ -42,9 +42,9 @@ function Raiz() {
       <Lateral />
       <main className="contenido">
         <Routes>
-          <Route path="/uptime" element={<Uptime />} />
-          {/* Mientras solo hay un módulo, cualquier otra ruta lleva a él. */}
-          <Route path="*" element={<Navigate to="/uptime" replace />} />
+          <Route path="/" element={<Inicio />} />
+          {/* Una ruta que no existe lleva al inicio. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       <BarraInferior />
@@ -75,7 +75,7 @@ function Lateral() {
         <span className="etiqueta menu-titulo">menú</span>
         <div className="menu">
           {SECCIONES.map((s) => (
-            <NavLink key={s.ruta} to={s.ruta} className={({ isActive }) => (isActive ? "activo" : "")}>
+            <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
               <Icono nombre={s.icono} />
               {s.etiqueta}
             </NavLink>
@@ -111,7 +111,7 @@ function BarraInferior() {
   return (
     <nav className="barra-inferior" aria-label="Secciones">
       {SECCIONES.map((s) => (
-        <NavLink key={s.ruta} to={s.ruta} className={({ isActive }) => (isActive ? "activo" : "")}>
+        <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
           <Icono nombre={s.icono} tamano={20} />
           {s.corta}
         </NavLink>

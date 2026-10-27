@@ -83,8 +83,9 @@ func (t *TelegramSender) Send(ctx context.Context, provider Provider, recipient,
 	}
 }
 
-// ServicioNotifier adapta el servicio de notificaciones al puerto que espera
-// uptime. Así uptime no conoce este paquete más que por su interfaz.
+// ServicioNotifier adapta el servicio de notificaciones al puerto que esperan
+// los módulos que avisan (calendario, automatizaciones). Así ninguno conoce
+// este paquete más que por su interfaz.
 type ServicioNotifier struct {
 	svc *Service
 }

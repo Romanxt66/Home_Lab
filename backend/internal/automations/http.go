@@ -56,7 +56,7 @@ func (h *Handler) disparadores(c *gin.Context) {
 	salida := make([]disparadorDTO, 0, len(Disparadores))
 	// Se recorre en orden fijo: un mapa de Go no garantiza el orden y la
 	// lista bailaría en cada recarga.
-	for _, d := range []Disparador{UptimeCaido, UptimeRecuperado, PresupuestoPasado, UsuarioRegistrado} {
+	for _, d := range []Disparador{UsuarioRegistrado} {
 		info := Disparadores[d]
 		salida = append(salida, disparadorDTO{
 			Tipo: string(d), Etiqueta: info.Etiqueta,

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,12 +13,8 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/calendar"
 	"github.com/Romanxt66/Home_Lab/backend/internal/coolify"
 	"github.com/Romanxt66/Home_Lab/backend/internal/dbadmin"
-	"github.com/Romanxt66/Home_Lab/backend/internal/finance"
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
-	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
 	"github.com/Romanxt66/Home_Lab/backend/internal/kernel"
-	"github.com/Romanxt66/Home_Lab/backend/internal/n8n"
-	"github.com/Romanxt66/Home_Lab/backend/internal/uptime"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
 )
 
@@ -37,16 +32,12 @@ import (
 
 // Servicios agrupa de lo que dependen las herramientas.
 type Servicios struct {
-	Finance     *finance.Service
-	Uptime      *uptime.Service
 	Users       *users.Service
 	Calendar    *calendar.Service
-	Inventory   *inventory.Service
 	Automations *automations.Service
 	DBAdmin     *dbadmin.Service
 	Coolify     *coolify.Service
 	GitHub      *github.Service
-	N8n         *n8n.Service
 	// Destinos son las secciones a las que se puede llevar al usuario.
 	Destinos []Destino
 }
@@ -149,215 +140,6 @@ func construirHerramientas(s Servicios) []assistant.Herramienta {
 				}
 				c.Efectos.Navegar(slug)
 				return "Abriendo «" + nombre + "» en pantalla."
-			},
-		},
-
-		// ── Finanzas ───────────────────────────────────────────────────────
-		{
-			Nombre:      "get_finance_summary",
-			Descripcion: "Resumen financiero de un mes: ingresos, gastos, neto y estado de los presupuestos. Sin mes ni año, usa el actual.",
-			Esquema:     `{"type":"object","properties":{"year":{"type":"integer","description":"Año, p. ej. 2026"},"month":{"type":"integer","description":"Mes 1-12"}}}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				ahora := time.Now()
-				año, mes := ahora.Year(), int(ahora.Month())
-				if hay(in, "year") {
-					año = entero(in, "year")
-				}
-				if hay(in, "month") {
-					mes = entero(in, "month")
-				}
-
-				resumen, err := s.Finance.ResumenMensual(ctx, año, mes)
-				if err != nil {
-					return "Error: no se pudo calcular el resumen."
-				}
-				presupuestos, err := s.Finance.PresupuestosConAvance(ctx, año, mes)
-				if err != nil {
-					return "Error: no se pudieron leer los presupuestos."
-				}
-
-				filas := make([]map[string]any, 0, len(presupuestos))
-				for _, p := range presupuestos {
-					filas = append(filas, map[string]any{
-						"categoriaId": p.Presupuesto.CategoryID,
-						"limite":      p.Avance.Limit.Float(),
-						"gastado":     p.Avance.Spent.Float(),
-						"estado":      string(p.Avance.Status),
-					})
-				}
-
-				return enJSON(map[string]any{
-					"year": año, "month": mes,
-					"ingresos": resumen.Income.Float(), "gastos": resumen.Expense.Float(),
-					"neto": resumen.Net.Float(), "presupuestos": filas,
-				})
-			},
-		},
-		{
-			Nombre:      "list_finance_accounts",
-			Descripcion: "Lista las cuentas financieras (caja, banco, tarjeta…) con su saldo actual.",
-			Esquema:     vacio,
-			Ejecutar: func(ctx context.Context, _ map[string]any, _ assistant.Contexto) string {
-				cuentas, err := s.Finance.CuentasConSaldo(ctx, false)
-				if err != nil {
-					return "Error: no se pudieron leer las cuentas."
-				}
-				filas := make([]map[string]any, 0, len(cuentas))
-				for _, c := range cuentas {
-					filas = append(filas, map[string]any{
-						"id": c.Cuenta.ID, "nombre": c.Cuenta.Name,
-						"tipo": string(c.Cuenta.Kind), "saldo": c.Balance.Float(),
-					})
-				}
-				return enJSON(filas)
-			},
-		},
-		{
-			Nombre:      "list_finance_categories",
-			Descripcion: "Lista las categorías de movimientos (ingreso o gasto) con su id; útil antes de crear un movimiento.",
-			Esquema:     vacio,
-			Ejecutar: func(ctx context.Context, _ map[string]any, _ assistant.Contexto) string {
-				cats, err := s.Finance.Categorias(ctx)
-				if err != nil {
-					return "Error: no se pudieron leer las categorías."
-				}
-				filas := make([]map[string]any, 0, len(cats))
-				for _, c := range cats {
-					filas = append(filas, map[string]any{"id": c.ID, "nombre": c.Name, "tipo": string(c.Kind)})
-				}
-				return enJSON(filas)
-			},
-		},
-		{
-			Nombre:      "list_finance_transactions",
-			Descripcion: "Lista los movimientos financieros más recientes.",
-			Esquema:     `{"type":"object","properties":{"limit":{"type":"integer","description":"Máximo de movimientos (por defecto 20)."}}}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				limite := 20
-				if hay(in, "limit") {
-					limite = entero(in, "limit")
-				}
-				movs, err := s.Finance.Movimientos(ctx, finance.FiltroMovimientos{Limite: limite})
-				if err != nil {
-					return "Error: no se pudieron leer los movimientos."
-				}
-				filas := make([]map[string]any, 0, len(movs))
-				for _, m := range movs {
-					filas = append(filas, map[string]any{
-						"id": m.ID, "tipo": string(m.Kind), "monto": m.Amount.Float(),
-						"categoriaId": m.CategoryID, "fecha": m.OccurredAt.Format(time.RFC3339), "notas": m.Notes,
-					})
-				}
-				return enJSON(filas)
-			},
-		},
-		{
-			Nombre:      "create_financial_transaction",
-			Descripcion: "Registra un ingreso o un gasto. Necesitas el id de la cuenta (list_finance_accounts) y, si quieres, el de la categoría (list_finance_categories).",
-			Esquema:     `{"type":"object","properties":{"accountId":{"type":"string"},"categoryId":{"type":"string","description":"Opcional."},"kind":{"type":"string","enum":["income","expense"]},"amount":{"type":"number","description":"Importe positivo."},"notes":{"type":"string"}},"required":["accountId","kind","amount"]}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				tipo := finance.Gasto
-				if texto(in, "kind") == "income" {
-					tipo = finance.Ingreso
-				}
-
-				m := finance.Movimiento{
-					AccountID: texto(in, "accountId"), Kind: tipo,
-					Amount: finance.DesdeFloat(numero(in, "amount")), OccurredAt: time.Now(),
-				}
-				if hay(in, "categoryId") {
-					c := texto(in, "categoryId")
-					m.CategoryID = &c
-				}
-				if hay(in, "notes") {
-					n := texto(in, "notes")
-					m.Notes = &n
-				}
-
-				res, err := s.Finance.GuardarMovimiento(ctx, m)
-				return resultado(res, err, func(v finance.Movimiento) string {
-					return "Movimiento registrado (id " + v.ID + ")."
-				})
-			},
-		},
-		{
-			Nombre:      "set_budget",
-			Descripcion: "Fija o actualiza el límite mensual de presupuesto de una categoría.",
-			Esquema:     `{"type":"object","properties":{"categoryId":{"type":"string"},"amount":{"type":"number","description":"Límite mensual, mayor que 0."}},"required":["categoryId","amount"]}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				res, err := s.Finance.GuardarPresupuesto(ctx, finance.Presupuesto{
-					CategoryID: texto(in, "categoryId"),
-					Amount:     finance.DesdeFloat(numero(in, "amount")),
-				})
-				return resultado(res, err, func(p finance.Presupuesto) string {
-					return "Presupuesto fijado en " + p.Amount.String() + " para la categoría " + p.CategoryID + "."
-				})
-			},
-		},
-
-		// ── Uptime ─────────────────────────────────────────────────────────
-		{
-			Nombre:      "list_uptime_monitors",
-			Descripcion: "Estado actual de todos los monitores de uptime: en línea, caído o sin datos.",
-			Esquema:     vacio,
-			Ejecutar: func(ctx context.Context, _ map[string]any, _ assistant.Contexto) string {
-				monitores, err := s.Uptime.List(ctx)
-				if err != nil {
-					return "Error: no se pudieron leer los monitores."
-				}
-				filas := make([]map[string]any, 0, len(monitores))
-				for _, m := range monitores {
-					filas = append(filas, map[string]any{
-						"id": m.ID, "nombre": m.Name, "url": m.URL, "estado": string(m.LastStatus),
-						"activo": m.Active, "fallosSeguidos": m.ConsecutiveFailures,
-					})
-				}
-				return enJSON(filas)
-			},
-		},
-		{
-			Nombre:      "check_uptime_monitor_now",
-			Descripcion: "Fuerza una comprobación inmediata de un monitor y devuelve el resultado.",
-			Esquema:     `{"type":"object","properties":{"id":{"type":"string"}},"required":["id"]}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				res, err := s.Uptime.CheckNow(ctx, texto(in, "id"))
-				return resultado(res, err, func(m uptime.Monitor) string {
-					salida := "«" + m.Name + "»: " + string(m.LastStatus)
-					if m.LastResponseMs != nil && *m.LastResponseMs > 0 {
-						salida += fmt.Sprintf(" (%d ms)", *m.LastResponseMs)
-					}
-					return salida + "."
-				})
-			},
-		},
-		{
-			Nombre:      "toggle_uptime_monitor",
-			Descripcion: "Activa o pausa un monitor de uptime.",
-			Esquema:     `{"type":"object","properties":{"id":{"type":"string"},"active":{"type":"boolean"}},"required":["id","active"]}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				detalle, err := s.Uptime.Detail(ctx, texto(in, "id"))
-				if err != nil {
-					return "Error: no se pudo leer el monitor."
-				}
-				if detalle == nil {
-					return "Error: ese monitor ya no existe."
-				}
-
-				m := detalle.Monitor
-				activar := booleano(in, "active")
-
-				res, err := s.Uptime.Save(ctx, m.ID, uptime.MonitorInput{
-					Name: m.Name, URL: m.URL, Method: m.Method, ExpectedStatus: m.ExpectedStatus,
-					IntervalSeconds: m.IntervalSeconds, TimeoutMs: m.TimeoutMs,
-					Active: activar, NotifyOnFailure: m.NotifyOnFailure,
-				})
-				return resultado(res, err, func(g uptime.Monitor) string {
-					estado := "pausado"
-					if activar {
-						estado = "activado"
-					}
-					return "Monitor «" + g.Name + "» " + estado + "."
-				})
 			},
 		},
 
@@ -482,52 +264,6 @@ func construirHerramientas(s Servicios) []assistant.Herramienta {
 				res, errSvc := s.Calendar.Crear(ctx, e)
 				return resultado(res, errSvc, func(v calendar.Evento) string {
 					return "Evento «" + v.Title + "» creado para " + v.Start.Format("02/01/2006 15:04") + "."
-				})
-			},
-		},
-
-		// ── Inventario ─────────────────────────────────────────────────────
-		{
-			Nombre:      "get_inventory_summary",
-			Descripcion: "Lista los artículos del inventario con su cantidad actual.",
-			Esquema:     `{"type":"object","properties":{"search":{"type":"string","description":"Filtrar por nombre (opcional)."}}}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				items, err := s.Inventory.ListItems(ctx, "")
-				if err != nil {
-					return "Error: no se pudo leer el inventario."
-				}
-
-				busqueda := strings.ToLower(strings.TrimSpace(texto(in, "search")))
-				filas := make([]map[string]any, 0, len(items))
-				for _, i := range items {
-					if busqueda != "" && !strings.Contains(strings.ToLower(i.Name), busqueda) {
-						continue
-					}
-					filas = append(filas, map[string]any{
-						"id": i.ID, "nombre": i.Name, "categoria": i.Category,
-						"cantidad": i.Quantity, "unidad": i.Unit,
-					})
-				}
-				return enJSON(filas)
-			},
-		},
-		{
-			Nombre:      "record_inventory_movement",
-			Descripcion: "Registra un movimiento de stock de un artículo (comprado, vendido, regalado, recibido, ajuste).",
-			Esquema:     `{"type":"object","properties":{"itemId":{"type":"string"},"kind":{"type":"string","enum":["bought","sold","gave_away","received","moved","adjust"]},"quantity":{"type":"number"},"notes":{"type":"string"}},"required":["itemId","kind","quantity"]}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				mov := inventory.MovementInput{
-					ItemID: texto(in, "itemId"), Kind: inventory.MovementKind(texto(in, "kind")),
-					Quantity: entero(in, "quantity"), OccurredAt: time.Now(),
-				}
-				if hay(in, "notes") {
-					n := texto(in, "notes")
-					mov.Notes = &n
-				}
-
-				res, err := s.Inventory.RecordMovement(ctx, mov)
-				return resultado(res, err, func(m inventory.Movement) string {
-					return "Movimiento registrado (id " + m.ID + ")."
 				})
 			},
 		},
@@ -762,38 +498,6 @@ func construirHerramientas(s Servicios) []assistant.Herramienta {
 						})
 					}
 					return enJSON(map[string]any{"usuario": r.Perfil.Login, "total": len(r.Repos), "repos": filas})
-				})
-			},
-		},
-
-		// ── n8n ────────────────────────────────────────────────────────────
-		{
-			Nombre:      "list_n8n_workflows",
-			Descripcion: "Lista los flujos de tu instancia de n8n y si están activos.",
-			Esquema:     vacio,
-			Ejecutar: func(ctx context.Context, _ map[string]any, _ assistant.Contexto) string {
-				res, err := s.N8n.ListarWorkflows(ctx)
-				return resultado(res, err, func(ws []n8n.Workflow) string {
-					filas := make([]map[string]any, 0, len(ws))
-					for _, w := range ws {
-						filas = append(filas, map[string]any{"id": w.ID, "nombre": w.Name, "activo": w.Active})
-					}
-					return enJSON(filas)
-				})
-			},
-		},
-		{
-			Nombre:      "toggle_n8n_workflow",
-			Descripcion: "Activa o desactiva un flujo de n8n.",
-			Esquema:     `{"type":"object","properties":{"id":{"type":"string"},"active":{"type":"boolean"}},"required":["id","active"]}`,
-			Ejecutar: func(ctx context.Context, in map[string]any, _ assistant.Contexto) string {
-				activar := booleano(in, "active")
-				res, err := s.N8n.Activar(ctx, texto(in, "id"), activar)
-				return resultado(res, err, func(struct{}) string {
-					if activar {
-						return "Flujo activado."
-					}
-					return "Flujo desactivado."
 				})
 			},
 		},

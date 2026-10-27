@@ -15,9 +15,6 @@ import (
 type Disparador string
 
 const (
-	UptimeCaido       Disparador = "uptime_down"
-	UptimeRecuperado  Disparador = "uptime_recovered"
-	PresupuestoPasado Disparador = "budget_exceeded"
 	UsuarioRegistrado Disparador = "user_registered"
 )
 
@@ -30,22 +27,6 @@ type InfoDisparador struct {
 }
 
 var Disparadores = map[Disparador]InfoDisparador{
-	UptimeCaido: {
-		Etiqueta: "Monitor caído",
-		Descripcion: "Un monitor de uptime pasó a caído. El aviso de Telegram ya sale solo; " +
-			"esto es para acciones de más.",
-		Variables: []string{"monitor", "url", "motivo"},
-	},
-	UptimeRecuperado: {
-		Etiqueta:    "Monitor recuperado",
-		Descripcion: "Un monitor de uptime volvió a responder.",
-		Variables:   []string{"monitor", "url"},
-	},
-	PresupuestoPasado: {
-		Etiqueta:    "Presupuesto superado",
-		Descripcion: "El gasto de una categoría pasó su presupuesto del mes.",
-		Variables:   []string{"categoria", "limite", "gastado"},
-	},
 	UsuarioRegistrado: {
 		Etiqueta: "Nuevo registro pendiente",
 		Descripcion: "Alguien se registró y espera aprobación. El aviso de Telegram ya " +
