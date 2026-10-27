@@ -30,21 +30,33 @@ COPY backend/ ./
 # La interfaz ya compilada entra donde la espera go:embed.
 COPY --from=interfaz /app/dist ./internal/web/dist
 
-# CGO apagado: así el binario no depende de ninguna biblioteca del sistema y
-# puede correr sobre una imagen sin nada dentro.
+# CGO apagado: así el binario queda estático y no depende de la libc del
+# sistema, que es lo que permite compilarlo sobre Debian y ejecutarlo sobre
+# Alpine, que usa musl.
 # -trimpath quita las rutas de compilación; -s -w quitan la tabla de símbolos.
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /api ./cmd/api
 
 # ── 3. Ejecución ────────────────────────────────────────────────────────────
-# distroless: solo los certificados raíz y la zona horaria. Sin shell, sin
-# gestor de paquetes y sin usuario root, que es menos superficie de ataque y
-# una imagen de unos pocos megas.
-FROM gcr.io/distroless/static-debian12:nonroot
+# Alpine y no distroless, aunque distroless sea más pequeño y no traiga shell:
+# Coolify comprueba la salud del contenedor con `docker exec /bin/sh -c wget…`,
+# y sobre una imagen sin shell eso falla siempre, así que el despliegue nunca
+# llega a darse por bueno. Vale más tener la comprobación funcionando —es la
+# que evita que un contenedor roto reciba tráfico— que ahorrar unos megas.
+FROM alpine:3.22
+
+# ca-certificates para hablar con HTTPS (el monitor de uptime y Telegram);
+# tzdata para que las horas que se guardan sean las de Bogotá; wget ya viene
+# en busybox y es lo que usa la comprobación de salud.
+RUN apk add --no-cache ca-certificates tzdata \
+ && adduser -D -H -u 10001 api
 
 COPY --from=servidor /api /api
 
 ENV PORT=8080 APP_ENV=production TZ=America/Bogota
 EXPOSE 8080
-USER nonroot:nonroot
+USER api
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/health || exit 1
 
 ENTRYPOINT ["/api"]
