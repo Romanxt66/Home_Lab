@@ -3,6 +3,7 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-do
 import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
 import { Calendario } from "./pages/Calendario";
+import { Automatizaciones } from "./pages/Automatizaciones";
 import { Correo } from "./pages/Correo";
 import { GitHub } from "./pages/GitHub";
 import { Inicio } from "./pages/Inicio";
@@ -19,6 +20,7 @@ import { Marca } from "./ui/Marca";
 const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono; soloAdmin?: boolean }[] = [
   { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
   { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar" },
+  { ruta: "/automations", etiqueta: "Automatizaciones", corta: "reglas", icono: "bolt" },
   { ruta: "/email-automation", etiqueta: "Correo", corta: "correo", icono: "mail" },
   { ruta: "/github", etiqueta: "GitHub", corta: "github", icono: "git" },
   { ruta: "/telegram", etiqueta: "Telegram", corta: "avisos", icono: "telegram" },
@@ -66,6 +68,7 @@ function Raiz() {
           <Route path="/" element={<Inicio />} />
           <Route path="/calendar" element={<Calendario />} />
           <Route path="/scheduler" element={<Tareas />} />
+          <Route path="/automations" element={<Automatizaciones />} />
           <Route path="/email-automation" element={<Correo />} />
           <Route path="/github" element={<GitHub />} />
           <Route path="/telegram" element={<Telegram />} />

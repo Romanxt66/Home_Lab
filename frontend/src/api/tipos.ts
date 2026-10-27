@@ -170,3 +170,40 @@ export interface ResumenGitHub {
   profile: PerfilGitHub;
   repos: RepoGitHub[];
 }
+
+export type TipoAccionRegla = "telegram" | "calendar_event" | "n8n_webhook";
+
+export interface AccionRegla {
+  type: TipoAccionRegla;
+  /** Todos los valores son texto, también los números: así se guardan. */
+  config: Record<string, string>;
+}
+
+export interface Regla {
+  id: string;
+  name: string;
+  trigger: string;
+  active: boolean;
+  actions: AccionRegla[];
+  createdAt: string;
+}
+
+export interface ReglaInput {
+  name: string;
+  trigger: string;
+  active: boolean;
+  actions: AccionRegla[];
+}
+
+export interface DisparadorRegla {
+  type: string;
+  label: string;
+  description: string;
+  variables: string[];
+}
+
+export interface EjecucionRegla {
+  ok: boolean;
+  error: string | null;
+  ranAt: string;
+}

@@ -405,6 +405,21 @@ a.tarjeta-sub:hover { color: var(--acento); }
 .metadatos span { display: inline-flex; align-items: center; gap: 0.25rem; }
 .ficha-aviso { color: var(--aviso); border-color: rgba(240, 169, 59, 0.3); background: var(--aviso-suave); }
 
+/* ── Automatizaciones ────────────────────────────────────────── */
+.pasos-regla { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+.pasos-regla li { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.pasos-regla .ficha { flex: none; }
+.paso-texto { font-family: var(--f-mono); font-size: 0.72rem; color: var(--texto-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.historial-mini { list-style: none; margin: 0; padding: 0.6rem 0 0; border-top: 1px solid var(--borde); display: grid; gap: 0.4rem; }
+.historial-mini li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.6rem; font-size: 0.78rem; }
+.historial-mini li.con-error .ejecucion-punto { background: var(--peligro); box-shadow: 0 0 0 3px var(--peligro-suave); }
+.historial-mini li.con-error .ejecucion-salida { color: var(--peligro); }
+.acciones-lista { display: grid; gap: 0.7rem; }
+.accion-bloque { margin: 0; padding: 0.8rem; border: 1px solid var(--borde); border-radius: var(--radio); background: rgba(255, 255, 255, 0.025); min-width: 0; }
+.accion-bloque-cab { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.8rem; }
+.accion-bloque-cab select { flex: 1; min-width: 0; }
+.accion:disabled { opacity: 0.3; cursor: default; }
+
 /* ── Interruptor ─────────────────────────────────────────────── */
 .interruptor {
   width: 40px; height: 22px; flex: none;
