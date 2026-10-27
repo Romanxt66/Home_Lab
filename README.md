@@ -68,6 +68,26 @@ en el Lab vale en esta API, y las contraseñas ya guardadas siguen validando.
 > Cuidado: cambiar los parámetros de scrypt en `auth/password.go` invalidaría
 > todas las cuentas existentes.
 
+## En producción
+
+Desplegado en <https://homelab.softlane.click> desde Coolify, en el mismo
+servidor y el mismo proyecto que el Lab.
+
+Es un solo contenedor: el `Dockerfile` compila la interfaz con Vite, la
+incrusta en el binario con `go:embed` y lo deja sobre Alpine. No hay servidor
+de Node en producción, y como la API y la interfaz comparten origen tampoco
+hace falta configurar CORS: por eso `VITE_API_URL` está vacío en
+`.env.production` y las llamadas son relativas.
+
+`DATABASE_URL` y `SESSION_SECRET` son los mismos valores que usa el Lab, de
+modo que las dos aplicaciones comparten base y sesiones. La única diferencia
+es la cadena de conexión: Prisma escribe `?schema=lab` y lib/pq, el driver de
+Go, necesita `?sslmode=disable&search_path=lab`.
+
+El contenedor se conecta a la red `coolify` («Connect to predefined network»),
+que es donde responde el nombre `master-db-central`. Sin eso no encuentra la
+base.
+
 ## Cómo levantarlo
 
 **Backend** (necesita PostgreSQL con el esquema `lab`):
