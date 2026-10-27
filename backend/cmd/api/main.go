@@ -23,6 +23,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/calendar"
 	"github.com/Romanxt66/Home_Lab/backend/internal/config"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
+	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
@@ -71,9 +72,23 @@ func main() {
 
 	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
 
+	githubConfigRepo := github.NewPostgresRepo(db)
 	githubHandler := github.NewHandler(github.NewService(
-		github.NewPostgresRepo(db),
+		githubConfigRepo,
 		github.NewRESTCliente(),
+	))
+
+	// El generador reutiliza el token guardado en el módulo de GitHub. Se le
+	// pasa como función para que no dependa de aquel paquete.
+	deploygenHandler := deploygen.NewHandler(deploygen.NewService(
+		deploygen.NewLectorGitHub(),
+		func(ctx context.Context) *string {
+			cfg, err := githubConfigRepo.GetActive(ctx)
+			if err != nil || cfg == nil {
+				return nil
+			}
+			return cfg.Token
+		},
 	))
 
 	n8nHandler := n8n.NewHandler(n8n.NewService(
@@ -221,6 +236,7 @@ func main() {
 	scraperHandler.Register(privadas.Group("/scraper"))
 	n8nHandler.Register(privadas.Group("/n8n"))
 	githubHandler.Register(privadas.Group("/github"))
+	deploygenHandler.Register(privadas.Group("/deploygen"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
