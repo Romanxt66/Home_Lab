@@ -9,6 +9,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/automations"
 	"github.com/Romanxt66/Home_Lab/backend/internal/calendar"
 	"github.com/Romanxt66/Home_Lab/backend/internal/coolify"
+	"github.com/Romanxt66/Home_Lab/backend/internal/dbadmin"
 	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
 	"github.com/Romanxt66/Home_Lab/backend/internal/finance"
@@ -64,6 +65,7 @@ func TestNingunaRutaChocaConOtra(t *testing.T) {
 	deploygen.NewHandler(nil).Register(privadas.Group("/deploygen"))
 	finance.NewHandler(nil).Register(privadas.Group("/finance"))
 	coolify.NewHandler(nil).Register(privadas.Group("/coolify"))
+	dbadmin.NewHandler(nil).Register(privadas.Group("/db-admin"))
 	users.NewHandler(nil).Register(privadas.Group("/users"))
 
 	r.POST("/api/cron/uptime", func(*gin.Context) {})

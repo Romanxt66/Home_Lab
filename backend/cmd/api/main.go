@@ -24,6 +24,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/config"
 	"github.com/Romanxt66/Home_Lab/backend/internal/coolify"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
+	"github.com/Romanxt66/Home_Lab/backend/internal/dbadmin"
 	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
 	"github.com/Romanxt66/Home_Lab/backend/internal/finance"
@@ -73,6 +74,16 @@ func main() {
 	inventoryHandler := inventory.NewHandler(inventoryService)
 
 	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
+
+	// Las conexiones a bases externas se reutilizan entre consultas y se
+	// sueltan al apagar el proceso.
+	dbEjecutor := dbadmin.NewPostgresEjecutor()
+	defer dbEjecutor.Cerrar()
+	dbadminHandler := dbadmin.NewHandler(dbadmin.NewService(
+		dbadmin.NewPostgresRepo(db),
+		dbEjecutor,
+		dbadmin.NewPostgresIntrospector(dbEjecutor),
+	))
 
 	coolifyService := coolify.NewService(
 		coolify.NewRESTCliente(),
@@ -259,6 +270,7 @@ func main() {
 	deploygenHandler.Register(privadas.Group("/deploygen"))
 	financeHandler.Register(privadas.Group("/finance"))
 	coolifyHandler.Register(privadas.Group("/coolify"))
+	dbadminHandler.Register(privadas.Group("/db-admin"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
