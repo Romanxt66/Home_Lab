@@ -78,4 +78,7 @@ export const api = {
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
   del: (path: string) => request<void>(path, { method: "DELETE" }),
+  /** DELETE con cuerpo: la API de filas señala la fila por su clave en el cuerpo. */
+  delConCuerpo: (path: string, body: unknown) =>
+    request<void>(path, { method: "DELETE", body: JSON.stringify(body) }),
 };

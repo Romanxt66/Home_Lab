@@ -324,3 +324,81 @@ export interface EntornoCoolify {
   uuid: string;
   name: string;
 }
+
+export interface ConexionDb {
+  id: string;
+  name: string;
+  host: string;
+  readOnly: boolean;
+}
+
+export interface EsquemaDb {
+  name: string;
+  isSystem: boolean;
+}
+
+export interface TablaDb {
+  schema: string;
+  name: string;
+  kind: string;
+  rowsApprox: number;
+}
+
+export interface ReferenciaDb {
+  schema: string;
+  table: string;
+  column: string;
+}
+
+export interface ColumnaDb {
+  name: string;
+  dataType: string;
+  isNullable: boolean;
+  isPrimaryKey: boolean;
+  default: string | null;
+  ordinalPosition: number;
+  references: ReferenciaDb | null;
+}
+
+export interface IndiceDb {
+  name: string;
+  isUnique: boolean;
+  isPrimary: boolean;
+  definition: string;
+}
+
+export interface ClaveAjenaDb {
+  constraintName: string;
+  schema: string;
+  table: string;
+  columns: string[];
+  refSchema: string;
+  refTable: string;
+  refColumns: string[];
+}
+
+export interface DetalleTablaDb {
+  columns: ColumnaDb[];
+  indexes: IndiceDb[];
+  foreignKeys: ClaveAjenaDb[];
+  referencedBy: ClaveAjenaDb[];
+}
+
+export interface DiagramaDb {
+  tables: {
+    schema: string;
+    name: string;
+    columns: { name: string; dataType: string; isPrimaryKey: boolean; isForeignKey: boolean }[];
+  }[];
+  relations: ClaveAjenaDb[];
+}
+
+export interface ResultadoDb {
+  columns: string[];
+  rows: unknown[][];
+  rowCount: number;
+  durationMs: number;
+  hasMore?: boolean;
+  limit?: number;
+  offset?: number;
+}

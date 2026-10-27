@@ -6,6 +6,7 @@ import { Calendario } from "./pages/Calendario";
 import { Automatizaciones } from "./pages/Automatizaciones";
 import { Despliegues } from "./pages/Despliegues";
 import { Coolify } from "./pages/Coolify";
+import { DbAdmin } from "./pages/DbAdmin";
 import { Correo } from "./pages/Correo";
 import { GitHub } from "./pages/GitHub";
 import { Inicio } from "./pages/Inicio";
@@ -25,6 +26,7 @@ const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreI
   { ruta: "/automations", etiqueta: "Automatizaciones", corta: "reglas", icono: "bolt" },
   { ruta: "/deploygen", etiqueta: "Despliegues", corta: "generar", icono: "rocket" },
   { ruta: "/coolify", etiqueta: "Coolify", corta: "servidor", icono: "server" },
+  { ruta: "/db-admin", etiqueta: "Bases de datos", corta: "datos", icono: "database" },
   { ruta: "/email-automation", etiqueta: "Correo", corta: "correo", icono: "mail" },
   { ruta: "/github", etiqueta: "GitHub", corta: "github", icono: "git" },
   { ruta: "/telegram", etiqueta: "Telegram", corta: "avisos", icono: "telegram" },
@@ -75,6 +77,7 @@ function Raiz() {
           <Route path="/automations" element={<Automatizaciones />} />
           <Route path="/deploygen" element={<Despliegues />} />
           <Route path="/coolify" element={<Coolify />} />
+          <Route path="/db-admin" element={<DbAdmin />} />
           <Route path="/email-automation" element={<Correo />} />
           <Route path="/github" element={<GitHub />} />
           <Route path="/telegram" element={<Telegram />} />
