@@ -24,6 +24,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/config"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
+	"github.com/Romanxt66/Home_Lab/backend/internal/github"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
 	"github.com/Romanxt66/Home_Lab/backend/internal/inventory"
 	"github.com/Romanxt66/Home_Lab/backend/internal/n8n"
@@ -69,6 +70,11 @@ func main() {
 	inventoryHandler := inventory.NewHandler(inventoryService)
 
 	userHandler := users.NewHandler(users.NewService(users.NewPostgresRepo(db)))
+
+	githubHandler := github.NewHandler(github.NewService(
+		github.NewPostgresRepo(db),
+		github.NewRESTCliente(),
+	))
 
 	n8nHandler := n8n.NewHandler(n8n.NewService(
 		n8n.NewRESTCliente(),
@@ -214,6 +220,7 @@ func main() {
 	inventoryHandler.Register(privadas.Group("/inventory"))
 	scraperHandler.Register(privadas.Group("/scraper"))
 	n8nHandler.Register(privadas.Group("/n8n"))
+	githubHandler.Register(privadas.Group("/github"))
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
