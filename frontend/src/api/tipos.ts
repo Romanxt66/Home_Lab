@@ -47,3 +47,53 @@ export interface UsuarioAdmin {
   /** Es la cuenta de quien mira: no se puede rechazar ni cambiar de rol. */
   isSelf: boolean;
 }
+
+export type AccionTarea = "email" | "scrape";
+
+/** Parámetros de una tarea. Cada acción espera los suyos; el resto se conserva. */
+export interface ParametrosTarea {
+  // email
+  recipients?: string;
+  subject?: string;
+  body?: string;
+  googleAccountId?: string;
+  // scrape
+  url?: string;
+  selector?: string;
+  attribute?: string;
+  [otro: string]: unknown;
+}
+
+export interface Tarea {
+  id: string;
+  name: string;
+  cron: string;
+  action: AccionTarea;
+  params: ParametrosTarea;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export interface TareaInput {
+  name: string;
+  cron: string;
+  action: AccionTarea;
+  params: ParametrosTarea;
+  enabled: boolean;
+}
+
+export interface EjecucionTarea {
+  id: string;
+  jobId: string;
+  jobName: string;
+  status: "success" | "error";
+  output: string | null;
+  startedAt: string;
+}
+
+export interface CuentaGmail {
+  id: string;
+  email: string;
+  name: string | null;
+  picture: string | null;
+}

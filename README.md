@@ -27,8 +27,8 @@ tocan: el Lab original sigue usándolas.
 | Coolify, administrador de bases de datos | Portado |
 | Asistente (Gemini) | Portado |
 
-El frontend tiene el acceso, el inicio, el **calendario** y la gestión de
-**usuarios** (solo para administradores); las pantallas de
+El frontend tiene el acceso, el inicio, el **calendario**, las **tareas
+programadas** y la gestión de **usuarios** (solo para administradores); las pantallas de
 los demás módulos están por hacer. El webhook de n8n sigue existiendo como *acción*
 de las automatizaciones; lo que se quitó es el panel de n8n.
 

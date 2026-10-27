@@ -295,6 +295,28 @@ button { font-family: inherit; }
 .tarjeta-pie { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 .tarjeta-nota { font-size: 0.76rem; color: var(--texto-4); }
 
+.tarjeta-avatar {
+  width: 40px; height: 40px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  color: var(--tono);
+  background: color-mix(in srgb, var(--tono) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tono) 30%, transparent);
+}
+.tarjeta-iconos { display: flex; gap: 0.15rem; flex: none; margin-right: -0.35rem; }
+.tarjeta-pie-partido { justify-content: space-between; }
+.tarjeta.atenuada { opacity: 0.8; }
+
+/* Lo último que dijo la tarea: una línea, el resto en el atributo title. */
+.salida {
+  font-family: var(--f-mono); font-size: 0.7rem; color: var(--texto-3);
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radio-sm);
+  background: rgba(0, 0, 0, 0.22);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.salida-error { color: var(--peligro); background: var(--peligro-suave); border: 1px solid var(--peligro-borde); white-space: normal; word-break: break-word; max-height: 4.2em; }
+
 .fichas { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .ficha {
   display: inline-flex; align-items: center; gap: 0.4rem;
@@ -312,6 +334,58 @@ button { font-family: inherit; }
   background: color-mix(in srgb, var(--tono) 10%, transparent);
 }
 .ficha-acento { color: var(--acento); border-color: var(--acento-borde); background: var(--acento-suave); }
+
+/* ── Interruptor ─────────────────────────────────────────────── */
+.interruptor {
+  width: 40px; height: 22px; flex: none;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid var(--borde-fuerte);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 200ms var(--curva), border-color 200ms var(--curva);
+}
+.interruptor-bola {
+  display: block; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--texto-3);
+  transition: transform 240ms var(--curva-rebote), background 200ms var(--curva);
+}
+.interruptor.activo { background: var(--acento-suave); border-color: var(--acento-borde); }
+.interruptor.activo .interruptor-bola { transform: translateX(18px); background: var(--acento); box-shadow: 0 0 10px var(--acento-halo); }
+.interruptor:disabled { opacity: 0.5; cursor: wait; }
+.interruptor:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+/* ── Historial de ejecuciones ────────────────────────────────── */
+.historial { display: grid; gap: 0.6rem; margin-top: 0.4rem; }
+.historial-cab { display: flex; align-items: center; justify-content: space-between; }
+.historial-vacio { font-size: 0.85rem; color: var(--texto-4); }
+.historial-lista { list-style: none; margin: 0; padding: 0.3rem 0; }
+.ejecucion {
+  display: grid;
+  grid-template-columns: auto minmax(0, 14rem) minmax(0, 1fr) auto;
+  align-items: center; gap: 0.75rem;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.82rem;
+}
+.ejecucion + .ejecucion { border-top: 1px solid var(--borde); }
+.ejecucion-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }
+.ejecucion.con-error .ejecucion-punto { background: var(--peligro); box-shadow: 0 0 0 3px var(--peligro-suave); }
+.ejecucion-nombre { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ejecucion-salida {
+  font-family: var(--f-mono); font-size: 0.72rem; color: var(--texto-4);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ejecucion.con-error .ejecucion-salida { color: var(--peligro); }
+.ejecucion-cuando { font-family: var(--f-mono); font-size: 0.68rem; color: var(--texto-4); white-space: nowrap; }
+
+/* ── Campos del formulario de tareas ─────────────────────────── */
+/* Con .campo delante para ganar a la regla general de los campos de texto. */
+.campo input.entrada-mono { font-family: var(--f-mono); font-size: 0.82rem; letter-spacing: 0; }
+.presets { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ficha-boton { cursor: pointer; font: inherit; font-family: var(--f-mono); font-size: 0.68rem; transition: background 160ms var(--curva), border-color 160ms var(--curva); }
+.ficha-boton:hover { border-color: var(--acento-borde); color: var(--texto); }
+.campo-error { color: var(--peligro); }
+input[aria-invalid="true"] { border-color: var(--peligro-borde); }
 
 /* ── Botones ─────────────────────────────────────────────────── */
 .btn {
@@ -616,6 +690,8 @@ input:focus, select:focus, textarea:focus {
   /* Si queda uno suelto en la última fila, que ocupe todo el ancho. */
   .resumenes > :last-child:nth-child(odd) { grid-column: 1 / -1; }
   .rejilla { grid-template-columns: 1fr; }
+  .ejecucion { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .ejecucion-salida { grid-column: 2 / -1; grid-row: 2; }
   .calendario .rejilla-mes { display: none; }
   .calendario { padding: 0.8rem; }
   .calendario-barra { justify-content: space-between; }

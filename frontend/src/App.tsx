@@ -4,6 +4,7 @@ import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
 import { Calendario } from "./pages/Calendario";
 import { Inicio } from "./pages/Inicio";
+import { Tareas } from "./pages/Tareas";
 import { Usuarios } from "./pages/Usuarios";
 import { Avatar } from "./ui/Avatar";
 import { Icono } from "./ui/Iconos";
@@ -14,6 +15,7 @@ import { Marca } from "./ui/Marca";
 const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono; soloAdmin?: boolean }[] = [
   { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
   { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar" },
+  { ruta: "/scheduler", etiqueta: "Tareas programadas", corta: "tareas", icono: "clock" },
   { ruta: "/users", etiqueta: "Usuarios", corta: "gente", icono: "shield", soloAdmin: true },
 ];
 
@@ -55,6 +57,7 @@ function Raiz() {
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/calendar" element={<Calendario />} />
+          <Route path="/scheduler" element={<Tareas />} />
           {/* El servidor ya rechaza a quien no es administrador; esto solo
               evita enseñarle una pantalla que no puede usar. */}
           <Route
