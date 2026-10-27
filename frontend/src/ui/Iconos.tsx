@@ -3,6 +3,11 @@ import type { CSSProperties } from "react";
 /** Trazos en una caja de 24×24. Para uno nuevo, basta con añadirlo aquí. */
 const TRAZOS = {
   home: "M4 11l8-7 8 7M6 10v10h12V10M10 20v-6h4v6",
+  chevronL: "M15 6l-6 6 6 6",
+  chevronR: "M9 6l6 6-6 6",
+  pin: "M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  bell: "M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0",
+  calendar: "M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM4 10h16M8 4v4M16 4v4",
   pulse: "M3 12h4l2.5-6 4 12L16 12h5",
   plus: "M12 5v14M5 12h14",
   refresh: "M20 11a8 8 0 0 0-14.5-3.5M4 4v4h4M4 13a8 8 0 0 0 14.5 3.5M20 20v-4h-4",

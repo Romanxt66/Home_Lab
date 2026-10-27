@@ -85,7 +85,9 @@ func (e Evento) AvisoPendiente(ahora time.Time) bool {
 func TextoDelAviso(e Evento) string {
 	hora := "todo el día"
 	if !e.AllDay {
-		hora = e.Start.Format("15:04")
+		// La base guarda UTC; a quien lee el aviso hay que contarle la hora de
+		// su zona, no la del servidor de la base de datos.
+		hora = e.Start.In(time.Local).Format("15:04")
 	}
 
 	partes := []string{"⏰ Recordatorio: " + e.Title, "🕒 " + hora}

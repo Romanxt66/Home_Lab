@@ -251,3 +251,27 @@ func TestMesInvalidoNoConsulta(t *testing.T) {
 		}
 	}
 }
+
+// La base guarda UTC. El aviso tiene que decir la hora de quien lo lee: sin
+// convertir, un evento a las 9:00 de Bogotá se anunciaría a las 14:00.
+func TestElAvisoDiceLaHoraLocalNoLaDeLaBase(t *testing.T) {
+	bogota, err := time.LoadLocation("America/Bogota")
+	if err != nil {
+		t.Skip("sin base de zonas horarias en esta máquina")
+	}
+
+	anterior := time.Local
+	time.Local = bogota
+	defer func() { time.Local = anterior }()
+
+	// 14:00 UTC son las 9:00 en Bogotá.
+	e := Evento{Title: "Reunión", Start: time.Date(2025, 3, 3, 14, 0, 0, 0, time.UTC)}
+
+	texto := TextoDelAviso(e)
+	if !strings.Contains(texto, "09:00") {
+		t.Errorf("no convirtió a la hora local:\n%s", texto)
+	}
+	if strings.Contains(texto, "14:00") {
+		t.Errorf("dijo la hora UTC:\n%s", texto)
+	}
+}

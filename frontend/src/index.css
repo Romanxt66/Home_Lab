@@ -334,7 +334,8 @@ button { font-family: inherit; }
 .campo-ayuda { font-size: 0.72rem; color: var(--texto-4); }
 
 input[type="text"], input[type="url"], input[type="email"],
-input[type="password"], input[type="number"], select {
+input[type="password"], input[type="number"], input[type="date"], input[type="time"],
+textarea, select {
   width: 100%;
   padding: 0.65rem 0.85rem;
   border-radius: var(--radio-sm);
@@ -355,8 +356,11 @@ select {
   cursor: pointer;
 }
 select option { background: #0f1b17; color: var(--texto); }
-input::placeholder { color: var(--texto-4); }
-input:focus, select:focus {
+input::placeholder, textarea::placeholder { color: var(--texto-4); }
+textarea { resize: vertical; min-height: 4.5rem; }
+input[type="date"], input[type="time"] { color-scheme: dark; }
+.campo-casilla { align-content: end; padding-bottom: 0.7rem; }
+input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--acento);
   box-shadow: 0 0 0 3px var(--acento-suave);
@@ -473,6 +477,86 @@ input:focus, select:focus {
 
 .cargando-pantalla { display: grid; place-items: center; min-height: 100vh; }
 
+/* ── Calendario ──────────────────────────────────────────────── */
+.calendario { padding: 1.1rem 1.1rem 1.2rem; display: grid; gap: 0.9rem; }
+.calendario-barra { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.calendario-nav { display: flex; align-items: center; gap: 0.3rem; }
+.calendario-mes {
+  min-width: 11ch; text-align: center;
+  font-family: var(--f-titular); font-weight: 400; font-size: 1.6rem;
+  letter-spacing: -0.01em;
+}
+/* Solo la primera letra: «capitalize» pondría también «De» en mayúscula. */
+.calendario-mes::first-letter { text-transform: uppercase; }
+
+.rejilla-mes {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.dia-nombre { text-align: center; padding-bottom: 0.2rem; }
+
+.celda {
+  min-height: 92px;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 0.4rem 0.4rem 0.35rem;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--borde);
+  background: rgba(255, 255, 255, 0.022);
+  cursor: pointer;
+  transition: background 180ms var(--curva), border-color 180ms var(--curva);
+}
+.celda:hover { background: rgba(255, 255, 255, 0.055); border-color: var(--borde-fuerte); }
+.celda:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+.celda.fuera { opacity: 0.38; }
+.celda.hoy { border-color: var(--acento-borde); background: var(--acento-suave); }
+.celda-numero {
+  align-self: flex-start;
+  min-width: 1.5rem; padding: 0 0.3rem;
+  font-size: 0.78rem; font-weight: 650; text-align: center;
+  color: var(--texto-3); font-variant-numeric: tabular-nums;
+}
+.celda.hoy .celda-numero { background: var(--acento); color: var(--sobre-acento); border-radius: 999px; }
+.celda-mas { font-family: var(--f-mono); font-size: 0.64rem; color: var(--texto-4); padding-left: 0.25rem; }
+
+.chip-evento {
+  display: flex; align-items: center; gap: 0.35rem;
+  width: 100%;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--acento-borde);
+  background: var(--acento-suave);
+  color: var(--texto);
+  font: inherit; font-size: 0.7rem; text-align: left;
+  cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: background 160ms var(--curva), transform 160ms var(--curva);
+}
+.chip-evento b { font-family: var(--f-mono); font-weight: 500; font-size: 0.64rem; color: var(--acento); flex: none; }
+.chip-evento:hover { background: rgba(62, 224, 160, 0.22); }
+.chip-evento:active { transform: scale(0.97); }
+.chip-evento:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+.chip-evento.todo-el-dia { border-color: var(--borde-fuerte); background: rgba(255, 255, 255, 0.07); }
+
+/* Agenda: lo que sustituye a la rejilla en móvil. */
+.agenda { display: none; gap: 1rem; }
+.agenda-dia { display: grid; gap: 0.45rem; }
+.tarjeta-evento {
+  display: grid; gap: 0.15rem;
+  padding: 0.8rem 0.95rem;
+  text-align: left; color: inherit; font: inherit; cursor: pointer;
+  transition: transform 200ms var(--curva), border-color 200ms var(--curva);
+}
+.tarjeta-evento:active { transform: scale(0.98); }
+.tarjeta-evento-hora { font-family: var(--f-mono); font-size: 0.7rem; color: var(--acento); }
+.tarjeta-evento-titulo { font-weight: 650; font-size: 0.95rem; }
+.tarjeta-evento-lugar { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.76rem; color: var(--texto-4); }
+
+.dialogo-pie-partido { justify-content: space-between; align-items: center; }
+.dialogo-pie-botones { display: flex; gap: 0.6rem; }
+.btn-peligro-texto { color: var(--peligro); }
+.btn-peligro-texto:hover:not(:disabled) { background: var(--peligro-suave); color: var(--peligro); }
+
 /* ── Barra inferior (móvil) ──────────────────────────────────── */
 .barra-inferior { display: none; }
 
@@ -484,7 +568,13 @@ input:focus, select:focus {
   .cabecera-acciones { width: 100%; }
   .cabecera-acciones .btn { flex: 1; }
   .resumenes { grid-template-columns: repeat(2, 1fr); }
+  /* Si queda uno suelto en la última fila, que ocupe todo el ancho. */
+  .resumenes > :last-child:nth-child(odd) { grid-column: 1 / -1; }
   .rejilla { grid-template-columns: 1fr; }
+  .calendario .rejilla-mes { display: none; }
+  .calendario { padding: 0.8rem; }
+  .calendario-barra { justify-content: space-between; }
+  .agenda { display: grid; }
 
   /* Sin barra lateral en móvil, la navegación pasa abajo, al alcance del pulgar. */
   .barra-inferior {

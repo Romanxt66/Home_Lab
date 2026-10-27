@@ -32,7 +32,9 @@ export function Cifra({ valor, decimales = 0, sufijo = "" }: Props) {
     let cuadro = 0;
 
     const paso = (ahora: number) => {
-      const t = Math.min((ahora - inicio) / duracion, 1);
+      // El primer fotograma puede traer una marca anterior al inicio: sin el
+      // Math.max, el progreso sale negativo y un valor 0 se pinta como «-0».
+      const t = Math.min(Math.max((ahora - inicio) / duracion, 0), 1);
       const suavizado = 1 - Math.pow(1 - t, 3);
       setAnimado(valor * suavizado);
       if (t < 1) cuadro = requestAnimationFrame(paso);
@@ -44,7 +46,7 @@ export function Cifra({ valor, decimales = 0, sufijo = "" }: Props) {
 
   return (
     <span className="cifra">
-      {mostrado.toLocaleString("es-CO", {
+      {(mostrado || 0).toLocaleString("es-CO", {
         minimumFractionDigits: decimales,
         maximumFractionDigits: decimales,
       })}

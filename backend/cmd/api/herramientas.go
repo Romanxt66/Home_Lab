@@ -263,7 +263,7 @@ func construirHerramientas(s Servicios) []assistant.Herramienta {
 
 				res, errSvc := s.Calendar.Crear(ctx, e)
 				return resultado(res, errSvc, func(v calendar.Evento) string {
-					return "Evento «" + v.Title + "» creado para " + v.Start.Format("02/01/2006 15:04") + "."
+					return "Evento «" + v.Title + "» creado para " + v.Start.In(time.Local).Format("02/01/2006 15:04") + "."
 				})
 			},
 		},

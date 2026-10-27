@@ -2,6 +2,7 @@ import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-do
 
 import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
+import { Calendario } from "./pages/Calendario";
 import { Inicio } from "./pages/Inicio";
 import { Icono } from "./ui/Iconos";
 import type { NombreIcono } from "./ui/Iconos";
@@ -10,6 +11,7 @@ import { Marca } from "./ui/Marca";
 /** Las secciones del panel. Añadir un módulo es añadir una línea aquí. */
 const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono }[] = [
   { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
+  { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar" },
 ];
 
 export default function App() {
@@ -43,6 +45,7 @@ function Raiz() {
       <main className="contenido">
         <Routes>
           <Route path="/" element={<Inicio />} />
+          <Route path="/calendar" element={<Calendario />} />
           {/* Una ruta que no existe lleva al inicio. */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
