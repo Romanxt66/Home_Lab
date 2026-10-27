@@ -15,8 +15,6 @@
 set -euo pipefail
 
 SERVIDOR="coolify"                                   # alias de ~/.ssh/config
-CONTENEDOR_PG="postgres-db-z4439oqrbhktaslf29yhmwyq"
-CONTENEDOR_LAB="lab-r135b2kfijcbwqel909vx8lh-183632405987"
 PUERTO_LOCAL=5433
 PUERTO_REMOTO=5433                                   # el que publica el contenedor
 
@@ -45,6 +43,29 @@ fi
 
 # ── 2. Credenciales ─────────────────────────────────────────────────────────
 echo "· Leyendo la configuración del servidor…"
+
+# Los contenedores se buscan por lo que contienen, no por su nombre: Coolify
+# le añade al nombre la fecha del despliegue, así que un nombre fijo deja de
+# valer en cuanto se vuelve a desplegar.
+CONTENEDOR_PG=$(ssh "$SERVIDOR" '
+  for c in $(docker ps --format "{{.Names}}"); do
+    if docker exec "$c" printenv POSTGRES_PASSWORD >/dev/null 2>&1 &&
+       docker port "$c" 2>/dev/null | grep -q ":'"$PUERTO_REMOTO"'$"; then
+      echo "$c"; break
+    fi
+  done')
+
+CONTENEDOR_LAB=$(ssh "$SERVIDOR" '
+  for c in $(docker ps --format "{{.Names}}"); do
+    case "$(docker exec "$c" printenv DATABASE_URL 2>/dev/null)" in
+      *schema=lab*) echo "$c"; break;;
+    esac
+  done')
+
+if [[ -z "$CONTENEDOR_PG" || -z "$CONTENEDOR_LAB" ]]; then
+  echo "No se encontraron los contenedores de PostgreSQL o del Lab." >&2
+  exit 1
+fi
 
 USUARIO=$(ssh "$SERVIDOR" "docker exec $CONTENEDOR_PG printenv POSTGRES_USER")
 CLAVE=$(ssh "$SERVIDOR"   "docker exec $CONTENEDOR_PG printenv POSTGRES_PASSWORD")
