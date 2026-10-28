@@ -257,7 +257,8 @@ func main() {
 	calendarHandler.Register(privadas.Group("/calendar"))
 	automationHandler.Register(privadas.Group("/automations"))
 	if gmailOAuth != nil {
-		gmailOAuth.Register(privadas.Group("/email"))
+		// Mismas rutas que el Lab: son las que ya están registradas en Google Cloud.
+		gmailOAuth.Register(privadas.Group("/auth"))
 	}
 
 	// Administrar cuentas es cosa del superadmin, y el grupo lo exige antes

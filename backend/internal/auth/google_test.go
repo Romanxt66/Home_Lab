@@ -62,7 +62,7 @@ func TestAuthURLPideLoMinimo(t *testing.T) {
 	g := NewGoogleClient(GoogleConfig{
 		ClientID:     "id-de-cliente",
 		ClientSecret: "secreto",
-		RedirectURI:  "https://ejemplo.com/api/auth/google/callback",
+		RedirectURI:  "https://ejemplo.com/api/auth/google/login/callback",
 	})
 
 	u, err := url.Parse(g.AuthURL("el-state"))
@@ -81,7 +81,7 @@ func TestAuthURLPideLoMinimo(t *testing.T) {
 	if q.Get("state") != "el-state" {
 		t.Errorf("no viajó el state: %q", q.Get("state"))
 	}
-	if q.Get("redirect_uri") != "https://ejemplo.com/api/auth/google/callback" {
+	if q.Get("redirect_uri") != "https://ejemplo.com/api/auth/google/login/callback" {
 		t.Errorf("redirect_uri mal: %q", q.Get("redirect_uri"))
 	}
 }

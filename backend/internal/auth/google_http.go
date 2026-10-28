@@ -21,8 +21,8 @@ func NewGoogleHandler(google *GoogleClient, caso *GoogleLogin, sessions *Session
 }
 
 func (h *GoogleHandler) Register(g *gin.RouterGroup) {
-	g.GET("/google/start", h.start)
-	g.GET("/google/callback", h.callback)
+	g.GET("/google/login/start", h.start)
+	g.GET("/google/login/callback", h.callback)
 }
 
 // start manda al usuario a la pantalla de consentimiento de Google, dejando

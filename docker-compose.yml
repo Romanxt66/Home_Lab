@@ -1,0 +1,36 @@
+# Despliegue en Coolify con el build pack «Docker Compose».
+#
+# Coolify sustituye las ${VARIABLES} por las que se definen en la aplicación y
+# pone el dominio delante del servicio con su proxy, así que aquí no se publica
+# ningún puerto. El mismo archivo sirve en local: `docker compose up --build`
+# con un .env al lado.
+services:
+  homelab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:?falta DATABASE_URL}
+      SESSION_SECRET: ${SESSION_SECRET:?falta SESSION_SECRET}
+      CRON_SECRET: ${CRON_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_LOGIN_REDIRECT_URI: ${GOOGLE_LOGIN_REDIRECT_URI:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      # Apagado mientras otra instancia ejecute las mismas tareas sobre la misma base.
+      SCHEDULER_INTERNO: ${SCHEDULER_INTERNO:-}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

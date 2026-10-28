@@ -120,7 +120,7 @@ export function Acceso() {
           <>
             <div className="separador">o</div>
             {/* Un enlace y no un botón: Google redirige, no hay nada que fetch. */}
-            <a className="btn btn-ancho" href={urlApi("/auth/google/start")}>
+            <a className="btn btn-ancho" href={urlApi("/auth/google/login/start")}>
               <Icono nombre="user" tamano={16} />
               Continuar con Google
             </a>

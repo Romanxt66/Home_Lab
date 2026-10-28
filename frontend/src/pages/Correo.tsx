@@ -316,7 +316,7 @@ export function Correo() {
           <>
             <div className="acciones-fila subir">
               {/* Un enlace y no un botón: Google redirige, no hay nada que pedir con fetch. */}
-              <a className="btn btn-principal" href={urlApi("/email/google/start")}>
+              <a className="btn btn-principal" href={urlApi("/auth/google/start")}>
                 <Icono nombre="link" tamano={15} />
                 Conectar una cuenta de Google
               </a>
