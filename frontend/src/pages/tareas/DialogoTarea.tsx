@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { AccionTarea, CuentaGmail, Tarea, TareaInput } from "../../api/tipos";
 import { Dialogo } from "../../ui/Dialogo";
 import { PRESETS, describirCron, errorDeCron } from "./cron";
+import { Selector } from "../../ui/Selector";
 
 interface Props {
   /** Si viene, se edita; si no, se crea. */
@@ -141,10 +142,10 @@ export function DialogoTarea({ tarea, guardando, error, alGuardar, alEliminar, a
 
       <div className="campo">
         <label htmlFor="t-accion">Qué hace</label>
-        <select id="t-accion" value={accion} onChange={(e) => setAccion(e.target.value as AccionTarea)}>
+        <Selector id="t-accion" value={accion} onChange={(e) => setAccion(e.target.value as AccionTarea)}>
           <option value="email">Enviar un correo</option>
           <option value="scrape">Leer una página web</option>
-        </select>
+        </Selector>
       </div>
 
       {accion === "email" ? (
@@ -171,14 +172,14 @@ export function DialogoTarea({ tarea, guardando, error, alGuardar, alEliminar, a
           </div>
           <div className="campo">
             <label htmlFor="t-cuenta">Enviar desde</label>
-            <select id="t-cuenta" value={cuenta} onChange={(e) => setCuenta(e.target.value)}>
+            <Selector id="t-cuenta" value={cuenta} onChange={(e) => setCuenta(e.target.value)}>
               <option value="">El correo del sistema</option>
               {cuentas.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.email}
                 </option>
               ))}
-            </select>
+            </Selector>
           </div>
         </>
       ) : (

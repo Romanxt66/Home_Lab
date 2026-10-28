@@ -4,6 +4,7 @@ import type { AccionRegla, DisparadorRegla, Regla, ReglaInput, TipoAccionRegla }
 import { Dialogo } from "../../ui/Dialogo";
 import { Icono } from "../../ui/Iconos";
 import { TIPOS_DE_ACCION, accionNueva } from "./acciones";
+import { Selector } from "../../ui/Selector";
 
 interface Props {
   regla: Regla | null;
@@ -64,14 +65,14 @@ export function DialogoRegla({ regla, disparadores, guardando, error, alGuardar,
 
       <div className="campo">
         <label htmlFor="rg-disp">Cuando</label>
-        <select id="rg-disp" value={disparador} onChange={(e) => setDisparador(e.target.value)}>
+        <Selector id="rg-disp" value={disparador} onChange={(e) => setDisparador(e.target.value)}>
           {esHeredado && <option value={regla?.trigger}>{regla?.trigger} (ya no disponible)</option>}
           {disparadores.map((d) => (
             <option key={d.type} value={d.type}>
               {d.label}
             </option>
           ))}
-        </select>
+        </Selector>
         {info && (
           <>
             <span className="campo-ayuda">{info.description}</span>
@@ -92,7 +93,7 @@ export function DialogoRegla({ regla, disparadores, guardando, error, alGuardar,
             <legend className="ocultar-visualmente">Acción {i + 1}</legend>
             <div className="accion-bloque-cab">
               <span className="ficha">{i + 1}</span>
-              <select
+              <Selector
                 aria-label={`Tipo de la acción ${i + 1}`}
                 value={a.type}
                 onChange={(e) => cambiarTipo(i, e.target.value as TipoAccionRegla)}
@@ -102,7 +103,7 @@ export function DialogoRegla({ regla, disparadores, guardando, error, alGuardar,
                     {t.etiqueta}
                   </option>
                 ))}
-              </select>
+              </Selector>
               <button type="button" className="accion" onClick={() => mover(i, -1)} disabled={i === 0} aria-label="Subir" title="Subir">
                 <Icono nombre="chevronL" tamano={15} style={{ transform: "rotate(90deg)" }} />
               </button>

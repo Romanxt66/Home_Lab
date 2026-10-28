@@ -10,6 +10,7 @@ import { ConsultaSql } from "./ConsultaSql";
 import { Datos } from "./Datos";
 import { Estructura } from "./Estructura";
 import { Diagrama } from "./Diagrama";
+import { Selector } from "../../ui/Selector";
 
 type Vista = "datos" | "estructura" | "diagrama" | "sql";
 
@@ -50,9 +51,9 @@ export function Explorador({ conexion, alCerrar }: { conexion: ConexionDb; alCer
         </div>
         <div className="campo">
           <label htmlFor="ex-esq">Esquema</label>
-          <select id="ex-esq" value={esquemaActivo ?? ""} onChange={(e) => { setEsquema(e.target.value); setTabla(null); }}>
+          <Selector id="ex-esq" value={esquemaActivo ?? ""} onChange={(e) => { setEsquema(e.target.value); setTabla(null); }}>
             {lista.map((e) => <option key={e.name} value={e.name}>{e.name}{e.isSystem ? " (sistema)" : ""}</option>)}
-          </select>
+          </Selector>
         </div>
         <div className="busqueda">
           <Icono nombre="search" tamano={15} />

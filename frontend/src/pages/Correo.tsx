@@ -13,6 +13,7 @@ import { Segmentado } from "../ui/Segmentado";
 import { Esqueletos, Vacio } from "../ui/Vacio";
 import { useDatos } from "../ui/useDatos";
 import { hace } from "../ui/tiempo";
+import { Selector } from "../ui/Selector";
 
 type Pestana = "enviar" | "plantillas" | "cuentas";
 
@@ -167,7 +168,7 @@ export function Correo() {
           {listaPlantillas.length > 0 && (
             <div className="campo">
               <label htmlFor="co-plantilla">Partir de una plantilla</label>
-              <select
+              <Selector
                 id="co-plantilla"
                 value=""
                 onChange={(e) => {
@@ -181,7 +182,7 @@ export function Correo() {
                     {p.name}
                   </option>
                 ))}
-              </select>
+              </Selector>
             </div>
           )}
 
@@ -229,14 +230,14 @@ export function Correo() {
 
           <div className="campo">
             <label htmlFor="co-desde">Enviar desde</label>
-            <select id="co-desde" value={desde} onChange={(e) => setDesde(e.target.value)}>
+            <Selector id="co-desde" value={desde} onChange={(e) => setDesde(e.target.value)}>
               <option value="">El correo del sistema</option>
               {listaCuentas.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.email}
                 </option>
               ))}
-            </select>
+            </Selector>
           </div>
 
           {resultado && <Alerta tipo={resultado.tipo} alCerrar={() => setResultado(null)}>{resultado.texto}</Alerta>}

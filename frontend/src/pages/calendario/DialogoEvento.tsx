@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Evento, EventoInput } from "../../api/tipos";
 import { Dialogo } from "../../ui/Dialogo";
 import { RECORDATORIOS, hhmm, ymd } from "./fechas";
+import { Selector } from "../../ui/Selector";
 
 interface Props {
   /** Si viene, se edita; si no, se crea. */
@@ -123,13 +124,13 @@ export function DialogoEvento({ evento, diaInicial, guardando, error, alGuardar,
 
       <div className="campo">
         <label htmlFor="ev-rec">Recordatorio</label>
-        <select id="ev-rec" value={recordar} onChange={(e) => setRecordar(e.target.value)}>
+        <Selector id="ev-rec" value={recordar} onChange={(e) => setRecordar(e.target.value)}>
           {RECORDATORIOS.map((r) => (
             <option key={r.valor} value={r.valor}>
               {r.etiqueta}
             </option>
           ))}
-        </select>
+        </Selector>
         {recordar !== "none" && (
           <span className="campo-ayuda">El aviso te llegará por Telegram, si lo tienes configurado.</span>
         )}

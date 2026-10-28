@@ -12,6 +12,7 @@ import { Segmentado } from "../../ui/Segmentado";
 import { Esqueletos, Vacio } from "../../ui/Vacio";
 import { useDatos } from "../../ui/useDatos";
 import { FichaEstado } from "./ficha";
+import { Selector } from "../../ui/Selector";
 
 type Pestana = "config" | "variables" | "registros";
 
@@ -125,9 +126,9 @@ function Configuracion({ app, catalogo, alCambiar }: { app: AppCoolify; catalogo
         </div>
         <div className="campo">
           <label htmlFor="ap-bp">Forma de construirlo</label>
-          <select id="ap-bp" value={f.buildPack} onChange={poner("buildPack")}>
+          <Selector id="ap-bp" value={f.buildPack} onChange={poner("buildPack")}>
             {(catalogo?.buildPacks ?? []).map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
-          </select>
+          </Selector>
         </div>
       </div>
       <div className="campo">

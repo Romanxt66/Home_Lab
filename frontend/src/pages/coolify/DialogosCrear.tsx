@@ -4,6 +4,7 @@ import { api, ApiError } from "../../api/client";
 import type { CatalogoCoolify, EntornoCoolify, ResumenCoolify } from "../../api/tipos";
 import { Dialogo } from "../../ui/Dialogo";
 import { useDatos } from "../../ui/useDatos";
+import { Selector } from "../../ui/Selector";
 
 interface Base {
   resumen: ResumenCoolify;
@@ -46,27 +47,27 @@ function Destino({ resumen, proyecto, setProyecto, entorno, setEntorno, servidor
       <div className="fila">
         <div className="campo">
           <label htmlFor="cc-proy">Proyecto</label>
-          <select id="cc-proy" value={proyecto} onChange={(e) => { setProyecto(e.target.value); setEntorno(""); }} required>
+          <Selector id="cc-proy" value={proyecto} onChange={(e) => { setProyecto(e.target.value); setEntorno(""); }} required>
             <option value="">Elige uno…</option>
             {resumen.projects.map((p) => <option key={p.uuid} value={p.uuid}>{p.name}</option>)}
-          </select>
+          </Selector>
         </div>
         {!soloServidorYProyecto && (
           <div className="campo">
             <label htmlFor="cc-ent">Entorno</label>
-            <select id="cc-ent" value={entorno} onChange={(e) => setEntorno(e.target.value)} required disabled={!proyecto}>
+            <Selector id="cc-ent" value={entorno} onChange={(e) => setEntorno(e.target.value)} required disabled={!proyecto}>
               <option value="">{entornos.cargando ? "Cargando…" : "Elige uno…"}</option>
               {entornos.datos?.map((x) => <option key={x.uuid} value={x.uuid}>{x.name}</option>)}
-            </select>
+            </Selector>
           </div>
         )}
       </div>
       <div className="campo">
         <label htmlFor="cc-srv">Servidor</label>
-        <select id="cc-srv" value={servidor} onChange={(e) => setServidor(e.target.value)} required>
+        <Selector id="cc-srv" value={servidor} onChange={(e) => setServidor(e.target.value)} required>
           <option value="">Elige uno…</option>
           {resumen.servers.map((s) => <option key={s.uuid} value={s.uuid}>{s.name} · {s.ip}{s.reachable ? "" : " (sin conexión)"}</option>)}
-        </select>
+        </Selector>
       </div>
     </>
   );
@@ -130,9 +131,9 @@ export function DialogoNuevaApp({ resumen, catalogo, alCerrar, alCrear }: Base) 
             </div>
             <div className="campo">
               <label htmlFor="na-bp">Forma de construirlo</label>
-              <select id="na-bp" value={buildPack} onChange={(e) => setBuildPack(e.target.value)}>
+              <Selector id="na-bp" value={buildPack} onChange={(e) => setBuildPack(e.target.value)}>
                 {(catalogo?.buildPacks ?? []).map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
-              </select>
+              </Selector>
             </div>
           </div>
           <div className="campo">
@@ -189,9 +190,9 @@ export function DialogoNuevaBase({ resumen, catalogo, alCerrar, alCrear }: Base)
       <div className="fila">
         <div className="campo">
           <label htmlFor="nb-tipo">Tipo</label>
-          <select id="nb-tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+          <Selector id="nb-tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
             {(catalogo?.databaseTypes ?? []).map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </select>
+          </Selector>
         </div>
         <div className="campo">
           <label htmlFor="nb-nombre">Nombre</label>

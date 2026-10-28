@@ -4,6 +4,7 @@ import { api, ApiError } from "../../api/client";
 import type { ColumnaDb } from "../../api/tipos";
 import { Dialogo } from "../../ui/Dialogo";
 import { esNulo, esTextoLargo, textoDeCelda } from "./celdas";
+import { Selector } from "../../ui/Selector";
 
 type Modo = "valor" | "nulo" | "omitir";
 
@@ -114,7 +115,7 @@ export function DialogoFila({ conexion, schema, tabla, columnas, columnasResulta
               ) : (
                 <input id={id} type="text" className="entrada-mono" value={f.texto} disabled={bloqueada} onChange={(e) => poner(c.name, { texto: e.target.value })} spellCheck={false} placeholder={bloqueada ? (f.modo === "nulo" ? "NULL" : `por defecto: ${c.default}`) : ""} />
               )}
-              <select
+              <Selector
                 aria-label={`Valor de ${c.name}`}
                 value={f.modo}
                 onChange={(e) => poner(c.name, { modo: e.target.value as Modo })}
@@ -122,7 +123,7 @@ export function DialogoFila({ conexion, schema, tabla, columnas, columnasResulta
                 <option value="valor">Valor</option>
                 {c.isNullable && <option value="nulo">NULL</option>}
                 {nueva && c.default !== null && <option value="omitir">Por defecto</option>}
-              </select>
+              </Selector>
             </div>
           </div>
         );
