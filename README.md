@@ -34,10 +34,8 @@ para administradores), más el **asistente** flotante. El webhook de n8n sigue
 existiendo como *acción* de las automatizaciones; lo que se quitó es el panel
 de n8n.
 
-Dos matices: el administrador de bases de datos enseña las relaciones entre
-tablas como una lista agrupada, no como un diagrama dibujado con flechas, y el
-frontend no tiene pruebas automáticas todavía (se ha verificado a mano contra
-una API simulada).
+Un matiz: el frontend no tiene pruebas automáticas todavía (se ha verificado a
+mano contra una API simulada).
 
 ## Por qué Go
 
