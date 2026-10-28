@@ -208,35 +208,6 @@ export interface EjecucionRegla {
   ranAt: string;
 }
 
-export interface DeteccionDespliegue {
-  runtime: string;
-  framework: string;
-  packageManager: string;
-  runtimeVersion: string;
-  installCommand: string;
-  buildCommand: string;
-  startCommand: string;
-  port: number;
-  isStatic: boolean;
-  publishDir: string;
-  needsDatabase: boolean;
-  databaseType: string;
-  hasDockerfile: boolean;
-  hasCompose: boolean;
-  recommendedBuildPack: string;
-  notes: string[];
-}
-
-export interface AnalisisDespliegue {
-  owner: string;
-  repo: string;
-  branch: string;
-  baseDir: string;
-  detection: DeteccionDespliegue;
-  dockerfile: string;
-  compose: string | null;
-}
-
 export interface ConfigCoolify {
   id: string;
   baseUrl: string;

@@ -54,7 +54,7 @@ func (e *PostgresEjecutor) conexion(url string) (*sqlx.DB, error) {
 		return db, nil
 	}
 
-	db, err := sqlx.Open("postgres", url)
+	db, err := sqlx.Open("postgres", ParaLibPq(url))
 	if err != nil {
 		return nil, err
 	}

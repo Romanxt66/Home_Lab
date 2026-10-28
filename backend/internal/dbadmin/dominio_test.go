@@ -322,3 +322,21 @@ func TestUnaColumnaConByteNuloSeRechaza(t *testing.T) {
 		t.Error("aceptó una columna con byte nulo")
 	}
 }
+
+func TestParaLibPq(t *testing.T) {
+	casos := map[string]string{
+		// Prisma: schema pasa a search_path y, al ser una base interna, sin TLS.
+		"postgresql://u:p@master-db-central:5432/master_db?schema=lab": "postgresql://u:p@master-db-central:5432/master_db?search_path=lab&sslmode=disable",
+		// Un host con dominio conserva el TLS por defecto.
+		"postgresql://u:p@db.ejemplo.com/app": "postgresql://u:p@db.ejemplo.com/app",
+		// Lo que ya está dicho no se toca.
+		"postgres://u@localhost/app?sslmode=require": "postgres://u@localhost/app?sslmode=require",
+		// Comillas de un .env.
+		`"postgresql://u@h/app?schema=x"`: "postgresql://u@h/app?search_path=x&sslmode=disable",
+	}
+	for entrada, esperado := range casos {
+		if got := ParaLibPq(entrada); got != esperado {
+			t.Errorf("ParaLibPq(%q) = %q, quería %q", entrada, got, esperado)
+		}
+	}
+}

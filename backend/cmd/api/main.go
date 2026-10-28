@@ -26,7 +26,6 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/coolify"
 	"github.com/Romanxt66/Home_Lab/backend/internal/database"
 	"github.com/Romanxt66/Home_Lab/backend/internal/dbadmin"
-	"github.com/Romanxt66/Home_Lab/backend/internal/deploygen"
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
@@ -89,19 +88,6 @@ func main() {
 		github.NewRESTCliente(),
 	)
 	githubHandler := github.NewHandler(githubService)
-
-	// El generador reutiliza el token guardado en el módulo de GitHub. Se le
-	// pasa como función para que no dependa de aquel paquete.
-	deploygenHandler := deploygen.NewHandler(deploygen.NewService(
-		deploygen.NewLectorGitHub(),
-		func(ctx context.Context) *string {
-			cfg, err := githubConfigRepo.GetActive(ctx)
-			if err != nil || cfg == nil {
-				return nil
-			}
-			return cfg.Token
-		},
-	))
 
 	// El orden importa: el calendario necesita las notificaciones y las
 	// automatizaciones necesitan el calendario.
@@ -248,7 +234,6 @@ func main() {
 	notificationHandler.Register(privadas.Group("/notifications"))
 	scraperHandler.Register(privadas.Group("/scraper"))
 	githubHandler.Register(privadas.Group("/github"))
-	deploygenHandler.Register(privadas.Group("/deploygen"))
 	coolifyHandler.Register(privadas.Group("/coolify"))
 	dbadminHandler.Register(privadas.Group("/db-admin"))
 	asistente.Register(privadas.Group("/assistant"))
@@ -414,7 +399,6 @@ func (p *puenteDeAutomatizaciones) Disparar(ctx context.Context, disparador stri
 var destinosDelAsistente = []Destino{
 	{"email-automation", "Automatización de correos"},
 	{"scraper", "Scraper / APIs"},
-	{"deploygen", "Generador de despliegues"},
 	{"scheduler", "Tareas programadas"},
 	{"calendar", "Calendario"},
 	{"telegram", "Telegram"},

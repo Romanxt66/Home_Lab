@@ -23,12 +23,12 @@ tocan: el Lab original sigue usándolas.
 | Notificaciones (Telegram) | Portado |
 | Correo, calendario, tareas programadas | Portado |
 | Automatizaciones | Portado |
-| Scraper, GitHub, generador de despliegues | Portado |
+| Scraper, GitHub | Portado |
 | Coolify, administrador de bases de datos | Portado |
 | Asistente (Gemini) | Portado |
 
 El frontend cubre ya **todos** los módulos: acceso, inicio, calendario,
-automatizaciones, generador de despliegues, Coolify, administrador de bases de
+automatizaciones, Coolify, administrador de bases de
 datos, correo, GitHub, Telegram, scraper, tareas programadas y usuarios (solo
 para administradores), más el **asistente** flotante. El webhook de n8n sigue
 existiendo como *acción* de las automatizaciones; lo que se quitó es el panel

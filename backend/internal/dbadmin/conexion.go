@@ -148,3 +148,35 @@ type Pagina struct {
 	Limit   int
 	Offset  int
 }
+
+// ParaLibPq adapta una cadena de conexión pegada de otras herramientas a lo
+// que acepta lib/pq. Dos diferencias muerden en la práctica:
+//
+//   - Prisma escribe `?schema=lab`. PostgreSQL no tiene ese parámetro y lo
+//     rechaza («unrecognized configuration parameter»); el equivalente es
+//     search_path.
+//   - lib/pq exige TLS si no se dice otra cosa, mientras que libpq lo prueba y
+//     cae a texto plano. Las bases internas (un nombre de contenedor, sin
+//     puntos, o localhost) no suelen tener TLS, así que ahí se desactiva.
+func ParaLibPq(crudo string) string {
+	u, err := url.Parse(limpiarComillas(crudo))
+	if err != nil || u.Host == "" {
+		return crudo
+	}
+
+	q := u.Query()
+	if esquema := q.Get("schema"); esquema != "" {
+		q.Del("schema")
+		if q.Get("search_path") == "" {
+			q.Set("search_path", esquema)
+		}
+	}
+	if q.Get("sslmode") == "" {
+		if h := u.Hostname(); h == "localhost" || !strings.Contains(h, ".") {
+			q.Set("sslmode", "disable")
+		}
+	}
+
+	u.RawQuery = q.Encode()
+	return u.String()
+}
