@@ -9,9 +9,9 @@ import { useDatos } from "../../ui/useDatos";
 import { ConsultaSql } from "./ConsultaSql";
 import { Datos } from "./Datos";
 import { Estructura } from "./Estructura";
-import { Relaciones } from "./Relaciones";
+import { Diagrama } from "./Diagrama";
 
-type Vista = "datos" | "estructura" | "relaciones" | "sql";
+type Vista = "datos" | "estructura" | "diagrama" | "sql";
 
 /** Una conexión abierta: esquemas y tablas a la izquierda, lo que se haga con ellas a la derecha. */
 export function Explorador({ conexion, alCerrar }: { conexion: ConexionDb; alCerrar(): void }) {
@@ -67,7 +67,7 @@ export function Explorador({ conexion, alCerrar }: { conexion: ConexionDb; alCer
                 <button
                   className={t.name === tabla ? "activa" : ""}
                   aria-current={t.name === tabla}
-                  onClick={() => { setTabla(t.name); if (vista === "relaciones" || vista === "sql") setVista("datos"); }}
+                  onClick={() => { setTabla(t.name); if (vista === "diagrama" || vista === "sql") setVista("datos"); }}
                 >
                   <Icono nombre={t.kind === "view" ? "search" : "list"} tamano={13} />
                   <span>{t.name}</span>
@@ -90,18 +90,18 @@ export function Explorador({ conexion, alCerrar }: { conexion: ConexionDb; alCer
             opciones={[
               { valor: "datos", etiqueta: "Datos" },
               { valor: "estructura", etiqueta: "Estructura" },
-              { valor: "relaciones", etiqueta: "Relaciones" },
+              { valor: "diagrama", etiqueta: "Diagrama" },
               { valor: "sql", etiqueta: "SQL" },
             ]}
             alCambiar={setVista}
           />
-          {tabla && vista !== "sql" && vista !== "relaciones" && <span className="ficha">{esquemaActivo}.{tabla}</span>}
+          {tabla && vista !== "sql" && vista !== "diagrama" && <span className="ficha">{esquemaActivo}.{tabla}</span>}
         </div>
 
         {vista === "sql" ? (
           <ConsultaSql key={conexion.id} conexion={conexion.id} sqlInicial={tabla ? `SELECT * FROM ${esquemaActivo}.${tabla} LIMIT 50;` : ""} />
-        ) : vista === "relaciones" ? (
-          esquemaActivo ? <Relaciones conexion={conexion.id} schema={esquemaActivo} alIrA={irA} /> : null
+        ) : vista === "diagrama" ? (
+          esquemaActivo ? <Diagrama conexion={conexion.id} schema={esquemaActivo} alAbrir={(t) => { setTabla(t); setVista("datos"); }} /> : null
         ) : !tabla || !esquemaActivo ? (
           <Vacio icono="database" titular="Elige una *tabla*.">Pulsa una en la lista para ver sus datos o su estructura.</Vacio>
         ) : (
