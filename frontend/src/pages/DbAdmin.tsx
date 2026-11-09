@@ -78,7 +78,7 @@ export function DbAdmin() {
         titular="Tus bases, *a mano*."
         entradilla="Explora tablas, edita filas y lanza consultas contra tus PostgreSQL."
         acciones={!activa && (
-          <button className="btn btn-principal" onClick={abrirNueva}>
+          <button className="cr-btn cr-btn-primary" onClick={abrirNueva}>
             <Icono nombre="plus" tamano={16} />
             Nueva conexión
           </button>
@@ -93,13 +93,13 @@ export function DbAdmin() {
       ) : conexiones.cargando && !conexiones.datos ? (
         <Esqueletos cantidad={2} />
       ) : lista.length === 0 ? (
-        <Vacio icono="database" titular="Aún no hay *conexiones*." accion={<button className="btn btn-principal" onClick={abrirNueva}><Icono nombre="plus" tamano={16} />Añadir la primera</button>}>
+        <Vacio icono="database" titular="Aún no hay *conexiones*." accion={<button className="cr-btn cr-btn-primary" onClick={abrirNueva}><Icono nombre="plus" tamano={16} />Añadir la primera</button>}>
           Guarda la cadena de conexión de una base PostgreSQL para explorarla desde aquí.
         </Vacio>
       ) : (
         <div className="rejilla">
           {lista.map((c, i) => (
-            <article key={c.id} className="tarjeta cristal subir" style={{ "--i": i + 1 } as React.CSSProperties} aria-label={c.name}>
+            <article key={c.id} className="tarjeta cr-glass subir" style={{ "--i": i + 1 } as React.CSSProperties} aria-label={c.name}>
               <div className="tarjeta-cab">
                 <span className="tarjeta-avatar"><Icono nombre="database" tamano={18} /></span>
                 <div className="tarjeta-titulo">
@@ -115,11 +115,11 @@ export function DbAdmin() {
                 <span className="ficha">{c.readOnly ? "solo lectura" : "lectura y escritura"}</span>
               </div>
               <div className="tarjeta-pie acciones-tarjeta">
-                <button className="btn btn-pequeno btn-principal" onClick={() => setAbierta(c.id)}>
+                <button className="cr-btn cr-btn-primary cr-btn-sm" onClick={() => setAbierta(c.id)}>
                   <Icono nombre="search" tamano={13} />
                   Explorar
                 </button>
-                <button className="btn btn-pequeno btn-fantasma" onClick={() => void probar(c)} disabled={probando === c.id}>
+                <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={() => void probar(c)} disabled={probando === c.id}>
                   <Icono nombre={probando === c.id ? "refresh" : "pulse"} tamano={13} />
                   {probando === c.id ? "Probando…" : "Probar"}
                 </button>

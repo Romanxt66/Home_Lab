@@ -40,7 +40,7 @@ export function ConsultaSql({ conexion, sqlInicial }: { conexion: string; sqlIni
   return (
     <div style={{ display: "grid", gap: "0.8rem" }}>
       <form
-        className="cristal panel"
+        className="cr-glass panel"
         onSubmit={(e) => { e.preventDefault(); void ejecutar(false); }}
       >
         <div className="campo">
@@ -63,7 +63,7 @@ export function ConsultaSql({ conexion, sqlInicial }: { conexion: string; sqlIni
           />
         </div>
         <div className="acciones-fila">
-          <button type="submit" className="btn btn-principal" disabled={ejecutando || !sql.trim()}>
+          <button type="submit" className="cr-btn cr-btn-primary" disabled={ejecutando || !sql.trim()}>
             <Icono nombre={ejecutando ? "refresh" : "play"} tamano={15} />
             {ejecutando ? "Ejecutando…" : "Ejecutar"}
           </button>
@@ -82,7 +82,7 @@ export function ConsultaSql({ conexion, sqlInicial }: { conexion: string; sqlIni
           {resultado.columns.length === 0 ? (
             <p className="texto-apagado">La sentencia se ejecutó y no devuelve filas.</p>
           ) : (
-            <div className="rejilla-datos cristal" role="region" aria-label="Filas devueltas" tabIndex={0}>
+            <div className="rejilla-datos cr-glass" role="region" aria-label="Filas devueltas" tabIndex={0}>
               <table>
                 <thead>
                   <tr>{resultado.columns.map((c, i) => <th key={i}><span className="celda-cab">{c}</span></th>)}</tr>

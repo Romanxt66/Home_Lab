@@ -74,7 +74,7 @@ function Conexion({ alConectar }: { alConectar(): void }) {
   }
 
   return (
-    <form className="cristal panel subir" style={{ "--i": 1 } as React.CSSProperties} onSubmit={conectar}>
+    <form className="cr-glass panel subir" style={{ "--i": 1 } as React.CSSProperties} onSubmit={conectar}>
       <h2>Conecta tu Coolify</h2>
       <p className="texto-apagado">Se necesita la dirección y un API token (en Coolify: Keys & Tokens → API tokens). El token se guarda cifrado y no se vuelve a mostrar.</p>
       <div className="campo">
@@ -87,7 +87,7 @@ function Conexion({ alConectar }: { alConectar(): void }) {
       </div>
       {error && <Alerta tipo="error">{error}</Alerta>}
       <div className="acciones-fila">
-        <button type="submit" className="btn btn-principal" disabled={guardando}>
+        <button type="submit" className="cr-btn cr-btn-primary" disabled={guardando}>
           <Icono nombre="link" tamano={15} />
           {guardando ? "Conectando…" : "Conectar"}
         </button>
@@ -173,23 +173,23 @@ function Panel({ config, alDesconectar }: { config: ConfigCoolify; alDesconectar
           />
         )}
         <span style={{ flex: 1 }} />
-        <button className="btn btn-pequeno" onClick={() => { resumen.recargar(); despliegues.recargar(); }} disabled={resumen.cargando}>
+        <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => { resumen.recargar(); despliegues.recargar(); }} disabled={resumen.cargando}>
           <Icono nombre="refresh" tamano={14} />
           Actualizar
         </button>
         {crear && !app && (
-          <button className="btn btn-principal btn-pequeno" onClick={crear.accion}>
+          <button className="cr-btn cr-btn-primary cr-btn-sm" onClick={crear.accion}>
             <Icono nombre="plus" tamano={14} />
             {crear.texto}
           </button>
         )}
         {pestana === "recursos" && !app && (
-          <button className="btn btn-pequeno" onClick={() => setCreando("servicio")}>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setCreando("servicio")}>
             <Icono nombre="plus" tamano={14} />
             Nuevo servicio
           </button>
         )}
-        <button className="btn btn-pequeno btn-fantasma" onClick={() => setPorDesconectar(true)}>Desconectar</button>
+        <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={() => setPorDesconectar(true)}>Desconectar</button>
       </div>
 
       {resumen.error && <Alerta tipo="error">{resumen.error}</Alerta>}
@@ -207,7 +207,7 @@ function Panel({ config, alDesconectar }: { config: ConfigCoolify; alDesconectar
         />
       ) : r && pestana === "apps" ? (
         r.apps.length === 0 ? (
-          <Vacio icono="rocket" titular="Ninguna *aplicación*." accion={<button className="btn btn-principal" onClick={() => setCreando("app")}><Icono nombre="plus" tamano={16} />Crear una</button>}>
+          <Vacio icono="rocket" titular="Ninguna *aplicación*." accion={<button className="cr-btn cr-btn-primary" onClick={() => setCreando("app")}><Icono nombre="plus" tamano={16} />Crear una</button>}>
             Cuando despliegues algo en Coolify aparecerá aquí.
           </Vacio>
         ) : (
@@ -274,7 +274,7 @@ function Panel({ config, alDesconectar }: { config: ConfigCoolify; alDesconectar
         ) : (
           <div className="rejilla">
             {r.projects.map((p, i) => (
-              <article key={p.uuid} className="tarjeta cristal subir" style={{ "--i": i + 1 } as React.CSSProperties}>
+              <article key={p.uuid} className="tarjeta cr-glass subir" style={{ "--i": i + 1 } as React.CSSProperties}>
                 <div className="tarjeta-cab">
                   <span className="tarjeta-avatar"><Icono nombre="list" tamano={18} /></span>
                   <div className="tarjeta-titulo">
@@ -371,7 +371,7 @@ function TarjetaRecurso({ indice, icono, nombre, sub, estado, etiquetaEstado, oc
   children?: React.ReactNode;
 }) {
   return (
-    <article className="tarjeta cristal subir" style={{ "--i": indice } as React.CSSProperties} aria-label={`${nombre}: ${etiquetaEstado}`} aria-busy={ocupado}>
+    <article className="tarjeta cr-glass subir" style={{ "--i": indice } as React.CSSProperties} aria-label={`${nombre}: ${etiquetaEstado}`} aria-busy={ocupado}>
       <div className="tarjeta-cab">
         <span className="tarjeta-avatar"><Icono nombre={icono} tamano={18} /></span>
         <div className="tarjeta-titulo">
@@ -387,13 +387,13 @@ function TarjetaRecurso({ indice, icono, nombre, sub, estado, etiquetaEstado, oc
       {children}
       <div className="tarjeta-pie acciones-tarjeta">
         {alAbrir && (
-          <button className="btn btn-pequeno" onClick={alAbrir}>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={alAbrir}>
             <Icono nombre="edit" tamano={13} />
             Detalle
           </button>
         )}
         {acciones.map((a) => (
-          <button key={a.texto} className="btn btn-pequeno btn-fantasma" onClick={a.alPulsar} disabled={ocupado} aria-label={`${a.texto} ${nombre}`}>
+          <button key={a.texto} className="cr-btn cr-btn-ghost cr-btn-sm" onClick={a.alPulsar} disabled={ocupado} aria-label={`${a.texto} ${nombre}`}>
             <Icono nombre={a.icono} tamano={13} />
             {a.texto}
           </button>
@@ -415,7 +415,7 @@ function Despliegues({ datos, cargando, error, ocupado, alCancelar }: {
   if (!datos || datos.length === 0) return <Vacio icono="clock" titular="Sin *despliegues*.">No hay ninguno en curso ni reciente.</Vacio>;
 
   return (
-    <ul className="cristal lista-despliegues subir" aria-label="Despliegues">
+    <ul className="cr-glass lista-despliegues subir" aria-label="Despliegues">
       {datos.map((d) => (
         <li key={d.uuid}>
           <FichaEstado estado={d.status} etiqueta={d.statusLabel} />
@@ -425,7 +425,7 @@ function Despliegues({ datos, cargando, error, ocupado, alCancelar }: {
           </span>
           <span className="ejecucion-cuando">{hace(d.createdAt)}</span>
           {(d.status === "queued" || d.status === "in_progress") && (
-            <button className="btn btn-pequeno btn-fantasma" onClick={() => alCancelar(d)} disabled={ocupado === `c:${d.uuid}`}>Cancelar</button>
+            <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={() => alCancelar(d)} disabled={ocupado === `c:${d.uuid}`}>Cancelar</button>
           )}
         </li>
       ))}

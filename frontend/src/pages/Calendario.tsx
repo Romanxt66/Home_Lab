@@ -170,7 +170,7 @@ export function Calendario() {
         titular="Tu tiempo, *bien ordenado*."
         entradilla="Apunta lo que viene y deja que te avisemos a tiempo."
         acciones={
-          <button className="btn btn-principal" onClick={() => abrirNuevo(new Date())}>
+          <button className="cr-btn cr-btn-primary" onClick={() => abrirNuevo(new Date())}>
             <Icono nombre="plus" tamano={16} />
             Nuevo evento
           </button>
@@ -194,7 +194,7 @@ export function Calendario() {
         <Resumen etiqueta="todo el día" valor={delMes.filter((e) => e.allDay).length} icono="clock" />
       </div>
 
-      <section className="cristal calendario subir" style={{ "--i": 2 } as React.CSSProperties} aria-busy={cargando}>
+      <section className="cr-glass calendario subir" style={{ "--i": 2 } as React.CSSProperties} aria-busy={cargando}>
         <div className="calendario-barra">
           <div className="calendario-nav">
             <button className="accion" onClick={() => moverMes(-1)} aria-label="Mes anterior" title="Mes anterior">
@@ -205,7 +205,7 @@ export function Calendario() {
               <Icono nombre="chevronR" tamano={18} />
             </button>
           </div>
-          <button className="btn btn-pequeno" onClick={irAHoy}>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={irAHoy}>
             Hoy
           </button>
         </div>
@@ -263,7 +263,7 @@ export function Calendario() {
       {/* En móvil la rejilla es demasiado estrecha para leerse: se sustituye por una agenda. */}
       <section className="agenda" aria-label="Agenda del mes">
         {agenda.length === 0 && !cargando ? (
-          <div className="cristal vacio">
+          <div className="cr-glass vacio">
             <span className="vacio-icono">
               <Icono nombre="calendar" tamano={24} />
             </span>
@@ -271,7 +271,7 @@ export function Calendario() {
               Un mes <em>despejado</em>.
             </h2>
             <p>No hay nada apuntado en {nombreDelMes(año, mes)}.</p>
-            <button className="btn btn-principal" onClick={() => abrirNuevo(new Date(año, mes, 1))}>
+            <button className="cr-btn cr-btn-primary" onClick={() => abrirNuevo(new Date(año, mes, 1))}>
               <Icono nombre="plus" tamano={16} />
               Apuntar algo
             </button>
@@ -281,7 +281,7 @@ export function Calendario() {
             <div key={clave} className="agenda-dia subir" style={{ "--i": i } as React.CSSProperties}>
               <span className="etiqueta">{diaLargo(new Date(`${clave}T12:00`))}</span>
               {lista.map((e) => (
-                <button key={e.id} className="cristal tarjeta-evento" onClick={() => abrirEditar(e)}>
+                <button key={e.id} className="cr-glass tarjeta-evento" onClick={() => abrirEditar(e)}>
                   <span className="tarjeta-evento-hora">{e.allDay ? "todo el día" : hhmm(new Date(e.start))}</span>
                   <span className="tarjeta-evento-titulo">{e.title}</span>
                   {e.location && (

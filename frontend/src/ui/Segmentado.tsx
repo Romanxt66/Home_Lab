@@ -1,3 +1,5 @@
+import { Segmented } from "../design";
+
 interface Opcion<T extends string> {
   valor: T;
   etiqueta: string;
@@ -10,22 +12,14 @@ interface Props<T extends string> {
   alCambiar(valor: T): void;
 }
 
-/** Píldoras para elegir una cosa entre pocas: pestañas y filtros. */
+/** Píldoras para elegir una cosa entre pocas: pestañas y filtros (Segmented de Cristal). */
 export function Segmentado<T extends string>({ opciones, valor, etiqueta, alCambiar }: Props<T>) {
   return (
-    <div className="segmentado" role="tablist" aria-label={etiqueta}>
-      {opciones.map((o) => (
-        <button
-          key={o.valor}
-          type="button"
-          role="tab"
-          aria-selected={o.valor === valor}
-          className={o.valor === valor ? "seleccionado" : ""}
-          onClick={() => alCambiar(o.valor)}
-        >
-          {o.etiqueta}
-        </button>
-      ))}
-    </div>
+    <Segmented
+      label={etiqueta}
+      value={valor}
+      onChange={alCambiar}
+      options={opciones.map((o) => ({ value: o.valor, label: o.etiqueta }))}
+    />
   );
 }

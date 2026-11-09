@@ -10,7 +10,7 @@ interface Props {
 export function Estructura({ detalle, alIrA }: Props) {
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
-      <section className="cristal rejilla-datos" aria-label="Columnas" tabIndex={0}>
+      <section className="cr-glass rejilla-datos" aria-label="Columnas" tabIndex={0}>
         <table>
           <thead>
             <tr><th>#</th><th>columna</th><th>tipo</th><th>nulo</th><th>por defecto</th><th>referencia</th></tr>
@@ -41,7 +41,7 @@ export function Estructura({ detalle, alIrA }: Props) {
         </table>
       </section>
 
-      <section className="cristal panel" aria-label="Índices">
+      <section className="cr-glass panel" aria-label="Índices">
         <h2>Índices</h2>
         {detalle.indexes.length === 0 ? (
           <p className="texto-apagado">Esta tabla no tiene índices.</p>
@@ -78,7 +78,7 @@ function Claves({ titulo, vacio, claves, destino, alIrA }: {
   alIrA(schema: string, tabla: string): void;
 }) {
   return (
-    <section className="cristal panel" aria-label={titulo}>
+    <section className="cr-glass panel" aria-label={titulo}>
       <h2>{titulo}</h2>
       {claves.length === 0 ? (
         <p className="texto-apagado">{vacio}</p>

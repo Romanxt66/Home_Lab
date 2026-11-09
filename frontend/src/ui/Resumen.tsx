@@ -41,12 +41,12 @@ export function Resumen({
     </>
   );
 
-  if (!alPulsar) return <div className="resumen cristal">{contenido}</div>;
+  if (!alPulsar) return <div className="resumen cr-glass">{contenido}</div>;
 
   return (
     <button
       type="button"
-      className={`resumen resumen-boton cristal${seleccionado ? " seleccionado" : ""}`}
+      className={`resumen resumen-boton cr-glass${seleccionado ? " seleccionado" : ""}`}
       onClick={alPulsar}
       aria-pressed={seleccionado}
     >

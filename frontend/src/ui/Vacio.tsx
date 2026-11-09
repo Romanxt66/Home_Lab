@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Glass, Skeleton } from "../design";
 import { Icono } from "./Iconos";
 import type { NombreIcono } from "./Iconos";
 
@@ -14,24 +15,22 @@ interface Props {
 /** Estado vacío: dice qué falta y cómo conseguirlo, sin culpar a nadie. */
 export function Vacio({ icono, titular, children, accion }: Props) {
   return (
-    <div className="cristal vacio subir">
+    <Glass padded className="vacio subir">
       <span className="vacio-icono">
         <Icono nombre={icono} tamano={24} />
       </span>
       <h2>{titular.split("*").map((t, i) => (i % 2 === 1 ? <em key={i}>{t}</em> : t))}</h2>
-      {children && <p>{children}</p>}
+      {children && <p className="cr-empty">{children}</p>}
       {accion}
-    </div>
+    </Glass>
   );
 }
 
-/** Tarjetas de cristal con brillo, mientras llega lo que se pidió. */
+/** Esqueletos con la forma aproximada de lo que viene, mientras llega lo que se pidió. */
 export function Esqueletos({ cantidad = 3 }: { cantidad?: number }) {
   return (
-    <div className="rejilla" aria-busy="true" aria-label="Cargando">
-      {Array.from({ length: cantidad }, (_, i) => (
-        <div key={i} className="cristal esqueleto" />
-      ))}
-    </div>
+    <Glass padded className="esqueletos">
+      <Skeleton lines={cantidad} height={56} />
+    </Glass>
   );
 }

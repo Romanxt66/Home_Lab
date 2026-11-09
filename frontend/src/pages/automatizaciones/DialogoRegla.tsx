@@ -52,7 +52,7 @@ export function DialogoRegla({ regla, disparadores, guardando, error, alGuardar,
       alCerrar={alCerrar}
       accionIzquierda={
         alEliminar && (
-          <button type="button" className="btn btn-fantasma btn-peligro-texto" onClick={alEliminar}>
+          <button type="button" className="cr-btn cr-btn-danger" onClick={alEliminar}>
             Eliminar
           </button>
         )
@@ -156,7 +156,7 @@ export function DialogoRegla({ regla, disparadores, guardando, error, alGuardar,
           </fieldset>
         ))}
 
-        <button type="button" className="btn btn-pequeno" onClick={() => setAcciones((l) => [...l, accionNueva("telegram")])}>
+        <button type="button" className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setAcciones((l) => [...l, accionNueva("telegram")])}>
           <Icono nombre="plus" tamano={14} />
           Añadir otra acción
         </button>

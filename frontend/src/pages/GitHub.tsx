@@ -86,7 +86,7 @@ export function GitHub() {
         entradilla="Tus repositorios con búsqueda, orden y filtros, sin salir del panel."
         acciones={
           hayCuenta && (
-            <button className="btn" onClick={() => { setErrorDialogo(null); setDialogo(true); }}>
+            <button className="cr-btn cr-btn-glass" onClick={() => { setErrorDialogo(null); setDialogo(true); }}>
               <Icono nombre="user" tamano={15} />
               Cambiar cuenta
             </button>
@@ -104,7 +104,7 @@ export function GitHub() {
           icono="git"
           titular="Conecta *tu cuenta*."
           accion={
-            <button className="btn btn-principal" onClick={() => { setErrorDialogo(null); setDialogo(true); }}>
+            <button className="cr-btn cr-btn-primary" onClick={() => { setErrorDialogo(null); setDialogo(true); }}>
               Conectar GitHub
             </button>
           }
@@ -114,7 +114,7 @@ export function GitHub() {
       ) : (
         <>
           {perfil && (
-            <section className="cristal panel perfil subir" style={{ "--i": 1 } as React.CSSProperties} aria-label="Perfil">
+            <section className="cr-glass panel perfil subir" style={{ "--i": 1 } as React.CSSProperties} aria-label="Perfil">
               <img className="perfil-foto" src={perfil.avatarUrl} alt="" width={64} height={64} referrerPolicy="no-referrer" />
               <div className="perfil-datos">
                 <div className="perfil-nombre">
@@ -133,7 +133,7 @@ export function GitHub() {
                   <span className="ficha">{config.datos?.hasToken ? "con token" : "sin token: solo públicos"}</span>
                 </div>
               </div>
-              <button className="btn btn-fantasma btn-peligro-texto btn-pequeno" onClick={() => setDesconectando(true)}>
+              <button className="cr-btn cr-btn-danger cr-btn-sm" onClick={() => setDesconectando(true)}>
                 Desconectar
               </button>
             </section>
@@ -173,7 +173,7 @@ export function GitHub() {
           {resumen.cargando && !resumen.datos ? (
             <Esqueletos />
           ) : repos.length === 0 ? (
-            <div className="cristal vacio subir">
+            <div className="cr-glass vacio subir">
               <p>{consulta ? `Ningún repositorio coincide con «${consulta}».` : "No hay repositorios que enseñar."}</p>
             </div>
           ) : (
@@ -181,7 +181,7 @@ export function GitHub() {
               <p className="texto-apagado subir" aria-live="polite">
                 {repos.length} {repos.length === 1 ? "repositorio" : "repositorios"}
               </p>
-              <div className="rejilla" style={{ opacity: resumen.cargando ? 0.6 : 1, transition: "opacity 200ms" }}>
+              <div className={`rejilla${resumen.cargando ? " rejilla-cargando" : ""}`}>
                 {repos.map((r, i) => (
                   <TarjetaRepo key={r.id} repo={r} indice={Math.min(i, 8) + 3} />
                 ))}
@@ -218,7 +218,7 @@ export function GitHub() {
 
 function TarjetaRepo({ repo: r, indice }: { repo: RepoGitHub; indice: number }) {
   return (
-    <article className="tarjeta cristal subir" style={{ "--i": indice } as React.CSSProperties}>
+    <article className="tarjeta cr-glass subir" style={{ "--i": indice } as React.CSSProperties}>
       <div className="tarjeta-cab">
         <div className="tarjeta-titulo">
           <a className="tarjeta-nombre enlace" href={r.url} target="_blank" rel="noopener noreferrer" title={r.fullName}>

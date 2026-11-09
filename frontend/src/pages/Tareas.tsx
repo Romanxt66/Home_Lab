@@ -169,7 +169,7 @@ export function Tareas() {
         }
         acciones={
           <button
-            className="btn btn-principal"
+            className="cr-btn cr-btn-primary"
             onClick={() => {
               setErrorDialogo(null);
               setEditando("nueva");
@@ -204,11 +204,11 @@ export function Tareas() {
       {cargando ? (
         <div className="rejilla" aria-busy="true" aria-label="Cargando tareas">
           {[0, 1].map((i) => (
-            <div key={i} className="cristal esqueleto" />
+            <div key={i} className="cr-glass esqueleto" />
           ))}
         </div>
       ) : tareas.length === 0 ? (
-        <div className="cristal vacio subir">
+        <div className="cr-glass vacio subir">
           <span className="vacio-icono">
             <Icono nombre="clock" tamano={24} />
           </span>
@@ -216,7 +216,7 @@ export function Tareas() {
             Aún no hay <em>nada programado</em>.
           </h2>
           <p>Crea una tarea para que envíe un correo o lea una página por ti, cada cierto tiempo.</p>
-          <button className="btn btn-principal" onClick={() => setEditando("nueva")}>
+          <button className="cr-btn cr-btn-primary" onClick={() => setEditando("nueva")}>
             <Icono nombre="plus" tamano={16} />
             Crear la primera
           </button>
@@ -231,9 +231,9 @@ export function Tareas() {
           </div>
 
           {visibles.length === 0 ? (
-            <div className="cristal vacio subir">
+            <div className="cr-glass vacio subir">
               <p>No hay tareas en ese estado.</p>
-              <button className="btn btn-pequeno" onClick={() => setFiltro("todas")}>
+              <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setFiltro("todas")}>
                 Ver todas
               </button>
             </div>
@@ -263,7 +263,7 @@ export function Tareas() {
             <div className="historial-cab">
               <span className="etiqueta">últimas ejecuciones</span>
               {ejecuciones.length > RECIENTES && (
-                <button className="btn btn-pequeno btn-fantasma" onClick={() => setVerTodas((v) => !v)}>
+                <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={() => setVerTodas((v) => !v)}>
                   {verTodas ? "Ver menos" : `Ver las ${ejecuciones.length}`}
                 </button>
               )}
@@ -272,7 +272,7 @@ export function Tareas() {
             {recientes.length === 0 ? (
               <p className="historial-vacio">Todavía no se ha ejecutado ninguna tarea.</p>
             ) : (
-              <ul className="historial-lista cristal">
+              <ul className="historial-lista cr-glass">
                 {recientes.map((e) => (
                   <li key={e.id} className={`ejecucion ${e.status === "error" ? "con-error" : ""}`}>
                     <span className="ejecucion-punto" aria-label={e.status === "error" ? "falló" : "bien"} />
@@ -345,7 +345,7 @@ function TarjetaTarea({ tarea: t, indice, ultima, ejecutando, cambiando, alEjecu
 
   return (
     <article
-      className={`tarjeta cristal subir tono-${tono}${t.enabled ? "" : " atenuada"}`}
+      className={`tarjeta cr-glass subir tono-${tono}${t.enabled ? "" : " atenuada"}`}
       style={{ "--i": indice } as React.CSSProperties}
       aria-label={`${t.name}: ${estado}`}
     >
@@ -387,7 +387,7 @@ function TarjetaTarea({ tarea: t, indice, ultima, ejecutando, cambiando, alEjecu
       )}
 
       <div className="tarjeta-pie tarjeta-pie-partido">
-        <button className={`btn btn-pequeno${ejecutando ? " girando" : ""}`} onClick={alEjecutar} disabled={ejecutando}>
+        <button className={`cr-btn cr-btn-glass cr-btn-sm${ejecutando ? " girando" : ""}`} onClick={alEjecutar} disabled={ejecutando}>
           <Icono nombre={ejecutando ? "refresh" : "play"} tamano={13} />
           {ejecutando ? "Ejecutando…" : "Ejecutar ahora"}
         </button>

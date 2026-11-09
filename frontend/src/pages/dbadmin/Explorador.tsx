@@ -41,9 +41,9 @@ export function Explorador({ conexion, alCerrar }: { conexion: ConexionDb; alCer
 
   return (
     <section className="explorador subir" aria-label={`Explorando ${conexion.name}`}>
-      <aside className="cristal explorador-lateral">
+      <aside className="cr-glass explorador-lateral">
         <div className="panel-cab">
-          <button className="btn btn-pequeno btn-fantasma" onClick={alCerrar}>
+          <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={alCerrar}>
             <Icono nombre="chevronL" tamano={14} />
             Conexiones
           </button>

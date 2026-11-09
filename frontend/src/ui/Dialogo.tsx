@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import type { FormEvent, ReactNode } from "react";
 
+import { createPortal } from "react-dom";
+
+import { Button, Glass } from "../design";
 import { Icono } from "./Iconos";
 
 interface Props {
@@ -48,27 +51,26 @@ export function Dialogo({
     alEnviar();
   }
 
-  return (
-    <div className="fondo-dialogo" onMouseDown={alCerrar}>
-      {/* Un clic dentro no debe cerrarlo. */}
-      <div
-        className="dialogo"
+  return createPortal(
+    <div className="cr cr-overlay" onMouseDown={(e) => e.target === e.currentTarget && alCerrar()}>
+      <Glass
+        strong
+        className="cr-dialog cr-dialog-form"
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialogo-titulo"
-        onMouseDown={(e) => e.stopPropagation()}
       >
         <form onSubmit={enviar}>
           <div className="dialogo-cab">
             <div className="dialogo-cab-texto">
-              <span className="etiqueta">{etiqueta}</span>
+              <span className="cr-page-tag">{etiqueta}</span>
               <h2 id="dialogo-titulo" className="dialogo-titular">
                 {titular.split("*").map((t, i) => (i % 2 === 1 ? <em key={i}>{t}</em> : t))}
               </h2>
             </div>
-            <button type="button" className="accion" onClick={alCerrar} aria-label="Cerrar" title="Cerrar">
+            <Button variant="ghost" className="cr-btn-icon" onClick={alCerrar} aria-label="Cerrar" title="Cerrar">
               <Icono nombre="close" tamano={18} />
-            </button>
+            </Button>
           </div>
 
           <div className="dialogo-cuerpo">
@@ -81,19 +83,20 @@ export function Dialogo({
             {children}
           </div>
 
-          <div className="dialogo-pie dialogo-pie-partido">
+          <div className="dialogo-pie">
             <div>{accionIzquierda}</div>
             <div className="dialogo-pie-botones">
-              <button type="button" className="btn" onClick={alCerrar}>
+              <Button variant="ghost" onClick={alCerrar}>
                 Cancelar
-              </button>
-              <button type="submit" className="btn btn-principal" disabled={enviando}>
+              </Button>
+              <Button variant="primary" type="submit" disabled={enviando}>
                 {enviando ? "Guardando…" : etiquetaEnviar}
-              </button>
+              </Button>
             </div>
           </div>
         </form>
-      </div>
-    </div>
+      </Glass>
+    </div>,
+    document.body,
   );
 }

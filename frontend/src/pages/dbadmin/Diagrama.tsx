@@ -110,18 +110,18 @@ export function Diagrama({ conexion, schema, alAbrir }: Props) {
           {dibujo.nodes.length} tablas · {dibujo.edges.length} relaciones. Pasa el cursor por una tabla para resaltar sus vínculos; púlsala para abrirla.
         </p>
         <div className="diagrama-zoom">
-          <button className="btn btn-pequeno" onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z - PASO))} aria-label="Alejar" title="Alejar">−</button>
-          <button className="btn btn-pequeno" onClick={() => setZoom(ZOOM_INICIAL)} aria-label="Restablecer el zoom" title="Restablecer el zoom">
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z - PASO))} aria-label="Alejar" title="Alejar">−</button>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setZoom(ZOOM_INICIAL)} aria-label="Restablecer el zoom" title="Restablecer el zoom">
             <Icono nombre="refresh" tamano={13} />
           </button>
-          <button className="btn btn-pequeno" onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + PASO))} aria-label="Acercar" title="Acercar">+</button>
-          <button className="btn btn-pequeno" onClick={alternarCompleta} aria-pressed={completa}>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + PASO))} aria-label="Acercar" title="Acercar">+</button>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={alternarCompleta} aria-pressed={completa}>
             {completa ? "Salir" : "Pantalla completa"}
           </button>
         </div>
       </div>
 
-      <div className="cristal diagrama-lienzo">
+      <div className="cr-glass diagrama-lienzo">
         <svg
           width={dibujo.width * zoom}
           height={dibujo.height * zoom}

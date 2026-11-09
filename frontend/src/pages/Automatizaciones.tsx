@@ -82,7 +82,7 @@ export function Automatizaciones() {
         titular="Si pasa esto, *haz aquello*."
         entradilla="Reglas que reaccionan solas a lo que ocurre en el sistema."
         acciones={
-          <button className="btn btn-principal" onClick={abrirNueva}>
+          <button className="cr-btn cr-btn-primary" onClick={abrirNueva}>
             <Icono nombre="plus" tamano={16} />
             Nueva regla
           </button>
@@ -99,7 +99,7 @@ export function Automatizaciones() {
           icono="bolt"
           titular="Aún no hay *reglas*."
           accion={
-            <button className="btn btn-principal" onClick={abrirNueva}>
+            <button className="cr-btn cr-btn-primary" onClick={abrirNueva}>
               <Icono nombre="plus" tamano={16} />
               Crear la primera
             </button>
@@ -167,7 +167,7 @@ function TarjetaRegla({ regla: r, indice, disparador, cambiando, alAlternar, alE
 
   return (
     <article
-      className={`tarjeta cristal subir tono-${r.active ? "acento" : "aviso"}${r.active ? "" : " atenuada"}`}
+      className={`tarjeta cr-glass subir tono-${r.active ? "acento" : "aviso"}${r.active ? "" : " atenuada"}`}
       style={{ "--i": indice } as React.CSSProperties}
       aria-label={`${r.name}: ${r.active ? "activa" : "en pausa"}`}
     >
@@ -199,7 +199,7 @@ function TarjetaRegla({ regla: r, indice, disparador, cambiando, alAlternar, alE
       </ol>
 
       <div className="tarjeta-pie tarjeta-pie-partido">
-        <button className="btn btn-pequeno btn-fantasma" onClick={() => setVerHistorial((v) => !v)} aria-expanded={verHistorial}>
+        <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={() => setVerHistorial((v) => !v)} aria-expanded={verHistorial}>
           <Icono nombre="clock" tamano={13} />
           {verHistorial ? "Ocultar historial" : "Historial"}
         </button>

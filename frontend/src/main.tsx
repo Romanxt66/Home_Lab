@@ -1,14 +1,19 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource/instrument-serif/400.css'
-import '@fontsource/instrument-serif/400-italic.css'
-import '@fontsource-variable/manrope'
-import '@fontsource-variable/jetbrains-mono'
-import './index.css'
+import './design/cristal.css'
+import './app.css'
+import { Backdrop, ToastProvider, applyStoredTheme } from './design'
 import App from './App.tsx'
+
+// Antes del primer pintado: así no hay parpadeo si el tema guardado es el claro.
+applyStoredTheme()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Backdrop>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </Backdrop>
   </StrictMode>,
 )

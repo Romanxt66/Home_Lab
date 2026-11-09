@@ -1,4 +1,7 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
+
+import { Button, Glass } from "../design";
 import type { ReactNode } from "react";
 
 interface Props {
@@ -34,37 +37,24 @@ export function Confirmar({
     return () => window.removeEventListener("keydown", alPulsar);
   }, [alCancelar]);
 
-  return (
-    <div className="fondo-dialogo" onMouseDown={alCancelar}>
-      <div
-        className="dialogo dialogo-estrecho"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirmar-titulo"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="dialogo-cuerpo">
-          <span className="etiqueta">{peligro ? "no se puede deshacer" : "confirma"}</span>
-          <h2 id="confirmar-titulo" className="dialogo-titular">
-            {titulo}
-          </h2>
-          <p className="dialogo-texto">{texto}</p>
-        </div>
-        <div className="dialogo-pie">
-          <button type="button" className="btn" onClick={alCancelar}>
+  return createPortal(
+    <div className="cr cr-overlay" onMouseDown={(e) => e.target === e.currentTarget && alCancelar()}>
+      <Glass strong padded className="cr-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmar-titulo">
+        <span className="cr-page-tag">{peligro ? "no se puede deshacer" : "confirma"}</span>
+        <h2 id="confirmar-titulo" className="heading" style={{ marginTop: "var(--space-3)" }}>
+          {titulo}
+        </h2>
+        <p className="body cr-muted">{texto}</p>
+        <div className="cr-dialog-actions">
+          <Button variant="ghost" onClick={alCancelar}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className={`btn ${peligro ? "btn-peligro-solido" : "btn-principal"}`}
-            onClick={alConfirmar}
-            disabled={trabajando}
-            autoFocus
-          >
+          </Button>
+          <Button variant={peligro ? "danger" : "primary"} onClick={alConfirmar} disabled={trabajando} autoFocus>
             {trabajando ? "Un momento…" : etiquetaConfirmar}
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </Glass>
+    </div>,
+    document.body,
   );
 }

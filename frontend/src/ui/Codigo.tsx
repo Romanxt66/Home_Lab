@@ -24,12 +24,12 @@ export function Codigo({ titulo, texto, extra }: Props) {
   }
 
   return (
-    <div className="codigo cristal">
+    <div className="codigo cr-glass">
       <div className="codigo-cab">
         <span className="etiqueta">{titulo}</span>
         <div className="codigo-acciones">
           {extra}
-          <button type="button" className="btn btn-pequeno" onClick={() => void copiar()}>
+          <button type="button" className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => void copiar()}>
             <Icono nombre={copiado ? "check" : "copy"} tamano={13} />
             {copiado ? "Copiado" : "Copiar"}
           </button>

@@ -83,14 +83,14 @@ export function Asistente() {
       </button>
 
       {abierto && (
-        <section id="asistente-panel" className="asistente-panel cristal" role="dialog" aria-label="Asistente">
+        <section id="asistente-panel" className="asistente-panel cr-glass" role="dialog" aria-label="Asistente">
           <header className="asistente-cab">
             <div>
               <span className="etiqueta">asistente</span>
               <h2>¿En qué <em>te ayudo</em>?</h2>
             </div>
             {mensajes.length > 0 && (
-              <button className="btn btn-pequeno btn-fantasma" onClick={() => setMensajes([])} disabled={pensando}>
+              <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={() => setMensajes([])} disabled={pensando}>
                 Nueva
               </button>
             )}
@@ -144,7 +144,7 @@ export function Asistente() {
               placeholder="Escribe un mensaje…"
               aria-label="Mensaje"
             />
-            <button type="submit" className="btn btn-principal btn-icono" disabled={pensando || !texto.trim()} aria-label="Enviar">
+            <button type="submit" className="cr-btn cr-btn-primary cr-btn-icon" disabled={pensando || !texto.trim()} aria-label="Enviar">
               <Icono nombre="send" tamano={16} />
             </button>
           </form>

@@ -31,7 +31,7 @@ export function AppDetalle({ app, catalogo, alVolver, alCambiar }: Props) {
   return (
     <section className="subir" style={{ display: "grid", gap: "1rem" }} aria-label={`Detalle de ${app.name}`}>
       <div className="panel-cab">
-        <button className="btn btn-pequeno btn-fantasma" onClick={alVolver}>
+        <button className="cr-btn cr-btn-ghost cr-btn-sm" onClick={alVolver}>
           <Icono nombre="chevronL" tamano={14} />
           Volver
         </button>
@@ -91,7 +91,7 @@ function Configuracion({ app, catalogo, alCambiar }: { app: AppCoolify; catalogo
   }
 
   return (
-    <form className="cristal panel" onSubmit={guardar}>
+    <form className="cr-glass panel" onSubmit={guardar}>
       {app.gitRepository && (
         <p className="texto-apagado">
           {app.gitRepository}
@@ -151,7 +151,7 @@ function Configuracion({ app, catalogo, alCambiar }: { app: AppCoolify; catalogo
       </div>
       {aviso && <Alerta tipo={aviso.tipo}>{aviso.texto}</Alerta>}
       <div className="acciones-fila">
-        <button type="submit" className="btn btn-principal" disabled={guardando}>
+        <button type="submit" className="cr-btn cr-btn-primary" disabled={guardando}>
           <Icono nombre="check" tamano={15} />
           {guardando ? "Guardando…" : "Guardar cambios"}
         </button>
@@ -210,10 +210,10 @@ function Variables({ uuid }: { uuid: string }) {
   }
 
   return (
-    <div className="cristal panel">
+    <div className="cr-glass panel">
       <div className="panel-cab">
         <h2>Variables de entorno</h2>
-        <button className="btn btn-pequeno" onClick={() => abrir("nueva")}>
+        <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => abrir("nueva")}>
           <Icono nombre="plus" tamano={14} />
           Añadir
         </button>
@@ -288,7 +288,7 @@ function Registros({ uuid }: { uuid: string }) {
           opciones={[{ valor: "100", etiqueta: "100" }, { valor: "200", etiqueta: "200" }, { valor: "500", etiqueta: "500" }]}
           alCambiar={(v) => setLineas(Number(v))}
         />
-        <button className="btn btn-pequeno" onClick={recargar} disabled={cargando}>
+        <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={recargar} disabled={cargando}>
           <Icono nombre="refresh" tamano={14} />
           Actualizar
         </button>

@@ -16,30 +16,11 @@ import { Telegram } from "./pages/Telegram";
 import { Usuarios } from "./pages/Usuarios";
 import { Asistente } from "./ui/Asistente";
 import { Avatar } from "./ui/Avatar";
+import { BarraPestanas, NavSuperior } from "./ui/Navegacion";
+import { Button, Glass, Icon, useTheme } from "./design";
 import { Icono } from "./ui/Iconos";
-import type { NombreIcono } from "./ui/Iconos";
+import { useSecciones } from "./secciones";
 import { Marca } from "./ui/Marca";
-
-/** Las secciones del panel. Añadir un módulo es añadir una línea aquí. */
-const SECCIONES: { ruta: string; etiqueta: string; corta: string; icono: NombreIcono; soloAdmin?: boolean }[] = [
-  { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home" },
-  { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar" },
-  { ruta: "/automations", etiqueta: "Automatizaciones", corta: "reglas", icono: "bolt" },
-  { ruta: "/coolify", etiqueta: "Coolify", corta: "servidor", icono: "server" },
-  { ruta: "/db-admin", etiqueta: "Bases de datos", corta: "datos", icono: "database" },
-  { ruta: "/email-automation", etiqueta: "Correo", corta: "correo", icono: "mail" },
-  { ruta: "/github", etiqueta: "GitHub", corta: "github", icono: "git" },
-  { ruta: "/telegram", etiqueta: "Telegram", corta: "avisos", icono: "telegram" },
-  { ruta: "/scraper", etiqueta: "Scraper", corta: "scraper", icono: "code" },
-  { ruta: "/scheduler", etiqueta: "Tareas programadas", corta: "tareas", icono: "clock" },
-  { ruta: "/users", etiqueta: "Usuarios", corta: "gente", icono: "shield", soloAdmin: true },
-];
-
-/** Las secciones que ve quien ha entrado: las de administración, solo el administrador. */
-function useSecciones() {
-  const { usuario } = useSesion();
-  return SECCIONES.filter((s) => !s.soloAdmin || usuario?.role === "superadmin");
-}
 
 export default function App() {
   return (
@@ -67,9 +48,9 @@ function Raiz() {
   if (!usuario) return <Acceso />;
 
   return (
-    <div className="app">
-      <Lateral />
-      <main className="contenido">
+    <div className="cr-shell">
+      <Cabecera />
+      <main className="cr-main">
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/calendar" element={<Calendario />} />
@@ -91,72 +72,63 @@ function Raiz() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <BarraInferior />
+      <div className="cr-bottom">
+        <BarraInferior />
+      </div>
       <Asistente />
     </div>
   );
 }
 
-function Lateral() {
+/** Barra superior: marca, navegación con píldora, tema y la persona que ha entrado. */
+function Cabecera() {
   const { usuario, salir } = useSesion();
   const secciones = useSecciones();
+  const { choice, cycle } = useTheme();
   const nombre = usuario?.name ?? usuario?.email ?? "";
+  const nombreTema = choice === "system" ? "del sistema" : choice === "light" ? "claro" : "oscuro";
 
   return (
-    <aside className="lateral">
-      <div className="marca">
-        <Marca />
-        <span>
-          <span className="marca-nombre">Home Lab</span>
-          <span className="etiqueta marca-sub">panel de herramientas</span>
-        </span>
-      </div>
+    <Glass as="header" className="cr-topbar">
+      <NavLink to="/" className="cr-brand" aria-label="Home Lab, ir al inicio">
+        <Marca tamano={34} />
+        <span className="cr-wide-only">Home Lab</span>
+      </NavLink>
 
-      <nav aria-label="Secciones">
-        <span className="etiqueta menu-titulo">menú</span>
-        <div className="menu">
-          {secciones.map((s) => (
-            <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
-              <Icono nombre={s.icono} />
-              {s.etiqueta}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
+      <NavSuperior secciones={secciones} />
+      <span className="cr-spacer cr-solo-movil" />
 
-      <div className="lateral-pie">
-        <div className="lateral-usuario">
-          <Avatar nombre={nombre} />
-          <span style={{ minWidth: 0 }}>
-            <b>{nombre}</b>
-            <span className="etiqueta">
-              {usuario?.role === "superadmin" ? "administrador" : "usuario"}
-            </span>
-          </span>
-        </div>
-        <button className="btn btn-fantasma btn-ancho" onClick={() => void salir()}>
-          <Icono nombre="logout" tamano={16} />
-          Cerrar sesión
-        </button>
-      </div>
-    </aside>
+      <Button
+        variant="ghost"
+        onClick={cycle}
+        aria-label={`Cambiar el tema, ahora ${nombreTema}`}
+        title={`Tema ${nombreTema}`}
+      >
+        <Icon name={choice === "light" ? "sun" : "moon"} />
+      </Button>
+      <span className="cr-wide-only cabecera-usuario" title={nombre}>
+        <Avatar nombre={nombre} tamano={34} />
+      </span>
+      <Button variant="ghost" onClick={() => void salir()} aria-label="Cerrar sesión" title="Cerrar sesión">
+        <Icon name="logout" />
+      </Button>
+    </Glass>
   );
 }
 
 /** Las que van siempre a mano en la barra de móvil; el resto cuelga de «más». */
 const PRINCIPALES = ["/", "/calendar", "/coolify", "/db-admin"];
 
-/** En móvil la barra lateral desaparece y la navegación baja aquí. */
+/** En móvil la navegación baja aquí: cuatro pestañas y «más», que abre todas las secciones. */
 function BarraInferior() {
   const { usuario, salir } = useSesion();
   const secciones = useSecciones();
   const { pathname } = useLocation();
+
   // La hoja recuerda en qué pantalla se abrió: al navegar deja de coincidir y
   // se cierra sola, sin taparle al usuario la pantalla a la que acaba de ir.
   const [abiertaEn, setAbiertaEn] = useState<string | null>(null);
   const abierto = abiertaEn === pathname;
-  const setAbierto = (v: boolean | ((a: boolean) => boolean)) =>
-    setAbiertaEn((actual) => ((typeof v === "function" ? v(actual === pathname) : v) ? pathname : null));
 
   useEffect(() => {
     if (!abierto) return;
@@ -173,8 +145,8 @@ function BarraInferior() {
     <>
       {abierto && (
         <>
-          <div className="hoja-fondo" onClick={() => setAbierto(false)} aria-hidden />
-          <div className="hoja cristal" role="dialog" aria-label="Todas las secciones">
+          <div className="hoja-fondo" onClick={() => setAbiertaEn(null)} aria-hidden />
+          <Glass strong className="hoja" role="dialog" aria-label="Todas las secciones">
             <div className="hoja-rejilla">
               {secciones.map((s) => (
                 <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
@@ -184,28 +156,30 @@ function BarraInferior() {
               ))}
             </div>
             <div className="hoja-pie">
-              <span className="texto-apagado">{usuario?.name ?? usuario?.email}</span>
-              <button className="btn btn-pequeno btn-fantasma" onClick={() => void salir()}>
-                <Icono nombre="logout" tamano={14} />
+              <span className="label cr-muted">{usuario?.name ?? usuario?.email}</span>
+              <Button size="sm" variant="ghost" icon="logout" onClick={() => void salir()}>
                 Cerrar sesión
-              </button>
+              </Button>
             </div>
-          </div>
+          </Glass>
         </>
       )}
 
-      <nav className="barra-inferior" aria-label="Secciones">
-        {principales.map((s) => (
-          <NavLink key={s.ruta} to={s.ruta} end className={({ isActive }) => (isActive ? "activo" : "")}>
-            <Icono nombre={s.icono} tamano={20} />
-            {s.corta}
-          </NavLink>
-        ))}
-        <button className={enMas || abierto ? "activo" : ""} onClick={() => setAbierto((a) => !a)} aria-expanded={abierto}>
-          <Icono nombre="list" tamano={20} />
-          más
-        </button>
-      </nav>
+      <BarraPestanas
+        secciones={principales}
+        final={
+          <button
+            type="button"
+            className="cr-tab"
+            aria-current={enMas || abierto ? "page" : undefined}
+            aria-expanded={abierto}
+            onClick={() => setAbiertaEn(abierto ? null : pathname)}
+          >
+            <Icono nombre="list" tamano={20} />
+            más
+          </button>
+        }
+      />
     </>
   );
 }

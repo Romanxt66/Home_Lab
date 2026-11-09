@@ -89,7 +89,7 @@ export function DialogoTarea({ tarea, guardando, error, alGuardar, alEliminar, a
       alCerrar={alCerrar}
       accionIzquierda={
         alEliminar && (
-          <button type="button" className="btn btn-fantasma btn-peligro-texto" onClick={alEliminar}>
+          <button type="button" className="cr-btn cr-btn-danger" onClick={alEliminar}>
             Eliminar
           </button>
         )

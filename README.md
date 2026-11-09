@@ -37,6 +37,16 @@ de n8n.
 Un matiz: el frontend no tiene pruebas automáticas todavía (se ha verificado a
 mano contra una API simulada).
 
+## Diseño
+
+La interfaz usa **Cristal monocromo** (el sistema de diseño de Alvea): vidrio
+esmerilado sobre una foto difuminada, paleta blanca/negra/gris con tema claro y
+oscuro, titulares con una palabra en serif cursiva y movimiento corto que se
+apaga con «reducir movimiento». El kit vive en `frontend/src/design/` (la hoja
+`cristal.css` y los componentes) y los estilos propios de Home Lab en
+`frontend/src/app.css`, escritos solo con sus tokens. Para comprobar que se
+respeta: `node <skill>/scripts/check_design.mjs frontend/src`.
+
 ## Por qué Go
 
 El lenguaje no es el motivo: el backend compila a un único binario sin

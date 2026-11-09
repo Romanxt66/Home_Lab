@@ -133,7 +133,7 @@ export function Usuarios() {
       {cargando ? (
         <div className="rejilla" aria-busy="true" aria-label="Cargando usuarios">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="cristal esqueleto" />
+            <div key={i} className="cr-glass esqueleto" />
           ))}
         </div>
       ) : (
@@ -173,13 +173,13 @@ export function Usuarios() {
           </div>
 
           {visibles.length === 0 ? (
-            <div className="cristal vacio subir">
+            <div className="cr-glass vacio subir">
               <p>
                 {filtro === "pending"
                   ? "No hay nadie esperando. Todo al día."
                   : "No hay cuentas con ese estado."}
               </p>
-              <button className="btn btn-pequeno" onClick={() => setElegido("todos")}>
+              <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setElegido("todos")}>
                 Ver todas
               </button>
             </div>
@@ -256,7 +256,7 @@ function TarjetaUsuario({ usuario: u, indice, ocupado, alAprobar, alRechazar, al
 
   return (
     <article
-      className={`tarjeta usuario cristal subir tono-${TONO_ESTADO[u.status]}`}
+      className={`tarjeta usuario cr-glass subir tono-${TONO_ESTADO[u.status]}`}
       style={{ "--i": indice } as React.CSSProperties}
       aria-label={`${nombreDe(u)}: ${ETIQUETA_ESTADO[u.status]}`}
     >
@@ -293,21 +293,21 @@ function TarjetaUsuario({ usuario: u, indice, ocupado, alAprobar, alRechazar, al
       ) : (
         <div className="tarjeta-pie">
           {u.status !== "approved" && (
-            <button className="btn btn-principal btn-pequeno" onClick={alAprobar} disabled={ocupado}>
+            <button className="cr-btn cr-btn-primary cr-btn-sm" onClick={alAprobar} disabled={ocupado}>
               <Icono nombre="check" tamano={14} />
               {ocupado ? "Aprobando…" : "Aprobar"}
             </button>
           )}
 
           {u.status === "approved" && (
-            <button className="btn btn-pequeno" onClick={() => alCambiarRol(esAdmin ? "user" : "superadmin")}>
+            <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => alCambiarRol(esAdmin ? "user" : "superadmin")}>
               <Icono nombre="shield" tamano={14} />
               {esAdmin ? "Quitar administrador" : "Hacer administrador"}
             </button>
           )}
 
           {u.status !== "rejected" && (
-            <button className="btn btn-pequeno btn-fantasma btn-peligro-texto" onClick={alRechazar}>
+            <button className="cr-btn cr-btn-danger cr-btn-sm" onClick={alRechazar}>
               {u.status === "approved" ? "Revocar acceso" : "Rechazar"}
             </button>
           )}

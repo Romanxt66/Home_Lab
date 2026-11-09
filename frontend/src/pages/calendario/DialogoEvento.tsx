@@ -61,7 +61,7 @@ export function DialogoEvento({ evento, diaInicial, guardando, error, alGuardar,
       alCerrar={alCerrar}
       accionIzquierda={
         alEliminar && (
-          <button type="button" className="btn btn-fantasma btn-peligro-texto" onClick={alEliminar}>
+          <button type="button" className="cr-btn cr-btn-danger" onClick={alEliminar}>
             Eliminar
           </button>
         )

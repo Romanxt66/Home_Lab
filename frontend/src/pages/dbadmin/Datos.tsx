@@ -71,12 +71,12 @@ export function Datos({ conexion, schema, tabla, detalle, soloLectura }: Props) 
         {r && <span className="ficha">{r.rowCount} {r.rowCount === 1 ? "fila" : "filas"} aquí · {r.durationMs} ms</span>}
         {!soloLectura && claves.length === 0 && detalle && <span className="ficha">sin clave primaria: solo se puede insertar</span>}
         <span style={{ flex: 1 }} />
-        <button className="btn btn-pequeno" onClick={filas.recargar} disabled={filas.cargando}>
+        <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={filas.recargar} disabled={filas.cargando}>
           <Icono nombre="refresh" tamano={14} />
           Actualizar
         </button>
         {!soloLectura && (
-          <button className="btn btn-pequeno btn-principal" onClick={() => setEditando({ fila: null })} disabled={!detalle}>
+          <button className="cr-btn cr-btn-primary cr-btn-sm" onClick={() => setEditando({ fila: null })} disabled={!detalle}>
             <Icono nombre="plus" tamano={14} />
             Nueva fila
           </button>
@@ -92,7 +92,7 @@ export function Datos({ conexion, schema, tabla, detalle, soloLectura }: Props) 
           {pagina > 0 ? "Esta página ya no tiene datos." : "Todavía no hay ninguna fila."}
         </Vacio>
       ) : r ? (
-        <div className="rejilla-datos cristal" role="region" aria-label={`Filas de ${tabla}`} tabIndex={0}>
+        <div className="rejilla-datos cr-glass" role="region" aria-label={`Filas de ${tabla}`} tabIndex={0}>
           <table>
             <thead>
               <tr>
@@ -129,12 +129,12 @@ export function Datos({ conexion, schema, tabla, detalle, soloLectura }: Props) 
 
       {r && (pagina > 0 || r.hasMore) && (
         <div className="barra-herramientas" style={{ justifyContent: "center" }}>
-          <button className="btn btn-pequeno" onClick={() => setPagina((p) => p - 1)} disabled={pagina === 0}>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setPagina((p) => p - 1)} disabled={pagina === 0}>
             <Icono nombre="chevronL" tamano={14} />
             Anterior
           </button>
           <span className="ficha">filas {pagina * POR_PAGINA + 1}–{pagina * POR_PAGINA + r.rowCount}</span>
-          <button className="btn btn-pequeno" onClick={() => setPagina((p) => p + 1)} disabled={!r.hasMore}>
+          <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => setPagina((p) => p + 1)} disabled={!r.hasMore}>
             Siguiente
             <Icono nombre="chevronR" tamano={14} />
           </button>

@@ -48,7 +48,7 @@ export function Scraper() {
         entradilla="Lee cualquier página y extrae con un selector CSS justo lo que buscas."
       />
 
-      <form className="cristal panel subir" style={{ "--i": 1 } as React.CSSProperties} onSubmit={leer}>
+      <form className="cr-glass panel subir" style={{ "--i": 1 } as React.CSSProperties} onSubmit={leer}>
         <div className="campo">
           <label htmlFor="sc-url">Dirección</label>
           <input
@@ -106,7 +106,7 @@ export function Scraper() {
         </div>
 
         <div className="acciones-fila">
-          <button type="submit" className="btn btn-principal" disabled={leyendo}>
+          <button type="submit" className="cr-btn cr-btn-primary" disabled={leyendo}>
             <Icono nombre={leyendo ? "refresh" : "search"} tamano={15} />
             {leyendo ? "Leyendo…" : "Leer página"}
           </button>
@@ -129,7 +129,7 @@ export function Scraper() {
 
           {items ? (
             items.length === 0 ? (
-              <div className="cristal panel">
+              <div className="cr-glass panel">
                 <p className="texto-apagado">
                   El selector es válido pero no encontró nada en esa página. Quizá el contenido se carga con
                   JavaScript, que este lector no ejecuta.

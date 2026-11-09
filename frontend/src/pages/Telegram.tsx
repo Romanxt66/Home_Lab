@@ -92,7 +92,7 @@ export function Telegram() {
         <Esqueletos cantidad={2} />
       ) : (
         <div className="dos-columnas subir" style={{ "--i": 1 } as React.CSSProperties}>
-          <form className="cristal panel" onSubmit={guardar}>
+          <form className="cr-glass panel" onSubmit={guardar}>
             <div className="panel-cab">
               <h2>Conexión</h2>
               <span className={`ficha ficha-estado ${hayConfig ? "tono-acento" : ""}`} style={{ "--tono": hayConfig ? "var(--acento)" : "var(--texto-4)" } as React.CSSProperties}>
@@ -132,22 +132,22 @@ export function Telegram() {
             </div>
 
             <div className="acciones-fila">
-              <button type="submit" className="btn btn-principal" disabled={guardando}>
+              <button type="submit" className="cr-btn cr-btn-primary" disabled={guardando}>
                 {guardando ? "Guardando…" : "Guardar"}
               </button>
-              <button type="button" className="btn" onClick={() => void probar()} disabled={!hayConfig || probando}>
+              <button type="button" className="cr-btn cr-btn-glass" onClick={() => void probar()} disabled={!hayConfig || probando}>
                 <Icono nombre="send" tamano={14} />
                 {probando ? "Enviando…" : "Enviar prueba"}
               </button>
               {hayConfig && (
-                <button type="button" className="btn btn-fantasma btn-peligro-texto" onClick={() => setDesconectando(true)}>
+                <button type="button" className="cr-btn cr-btn-danger" onClick={() => setDesconectando(true)}>
                   Desconectar
                 </button>
               )}
             </div>
           </form>
 
-          <aside className="cristal panel" aria-label="Cómo conseguir los datos">
+          <aside className="cr-glass panel" aria-label="Cómo conseguir los datos">
             <h2>Cómo conseguir los datos</h2>
             <ol className="pasos">
               <li>

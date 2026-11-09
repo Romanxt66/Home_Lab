@@ -63,16 +63,16 @@ export function Acceso() {
 
   return (
     <div className="acceso">
-      <form className="acceso-caja" onSubmit={alEnviar}>
+      <form className="acceso-caja cr-glass cr-glass-strong" onSubmit={alEnviar}>
         <div className="marca">
           <Marca />
           <span>
             <span className="marca-nombre">Home Lab</span>
-            <span className="etiqueta marca-sub">panel de herramientas</span>
+            <span className="caption cr-muted marca-sub">panel de herramientas</span>
           </span>
         </div>
 
-        <span className="etiqueta">acceso</span>
+        <span className="cr-page-tag">acceso</span>
         <h1>
           Bienvenido <em>de vuelta</em>.
         </h1>
@@ -112,7 +112,7 @@ export function Acceso() {
           />
         </div>
 
-        <button type="submit" className="btn btn-principal btn-ancho" disabled={enviando}>
+        <button type="submit" className="cr-btn cr-btn-primary btn-ancho" disabled={enviando}>
           {enviando ? "Entrando…" : "Entrar"}
         </button>
 
@@ -120,7 +120,7 @@ export function Acceso() {
           <>
             <div className="separador">o</div>
             {/* Un enlace y no un botón: Google redirige, no hay nada que fetch. */}
-            <a className="btn btn-ancho" href={urlApi("/auth/google/login/start")}>
+            <a className="cr-btn cr-btn-glass btn-ancho" href={urlApi("/auth/google/login/start")}>
               <Icono nombre="user" tamano={16} />
               Continuar con Google
             </a>

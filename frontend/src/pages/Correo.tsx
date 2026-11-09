@@ -164,7 +164,7 @@ export function Correo() {
       </div>
 
       {pestana === "enviar" && (
-        <form className="cristal panel subir" style={{ "--i": 2 } as React.CSSProperties} onSubmit={enviar}>
+        <form className="cr-glass panel subir" style={{ "--i": 2 } as React.CSSProperties} onSubmit={enviar}>
           {listaPlantillas.length > 0 && (
             <div className="campo">
               <label htmlFor="co-plantilla">Partir de una plantilla</label>
@@ -243,7 +243,7 @@ export function Correo() {
           {resultado && <Alerta tipo={resultado.tipo} alCerrar={() => setResultado(null)}>{resultado.texto}</Alerta>}
 
           <div className="acciones-fila">
-            <button type="submit" className="btn btn-principal" disabled={enviando}>
+            <button type="submit" className="cr-btn cr-btn-primary" disabled={enviando}>
               <Icono nombre="send" tamano={15} />
               {enviando ? "Enviando…" : "Enviar"}
             </button>
@@ -259,7 +259,7 @@ export function Correo() {
             icono="mail"
             titular="Aún no tienes *plantillas*."
             accion={
-              <button className="btn btn-principal" onClick={() => { setErrorDialogo(null); setEditando("nueva"); }}>
+              <button className="cr-btn cr-btn-primary" onClick={() => { setErrorDialogo(null); setEditando("nueva"); }}>
                 <Icono nombre="plus" tamano={16} />
                 Crear la primera
               </button>
@@ -270,14 +270,14 @@ export function Correo() {
         ) : (
           <>
             <div className="acciones-fila subir">
-              <button className="btn btn-principal" onClick={() => { setErrorDialogo(null); setEditando("nueva"); }}>
+              <button className="cr-btn cr-btn-primary" onClick={() => { setErrorDialogo(null); setEditando("nueva"); }}>
                 <Icono nombre="plus" tamano={16} />
                 Nueva plantilla
               </button>
             </div>
             <div className="rejilla">
               {listaPlantillas.map((p, i) => (
-                <article key={p.id} className="tarjeta cristal subir" style={{ "--i": i + 2 } as React.CSSProperties}>
+                <article key={p.id} className="tarjeta cr-glass subir" style={{ "--i": i + 2 } as React.CSSProperties}>
                   <div className="tarjeta-cab">
                     <span className="tarjeta-avatar"><Icono nombre="mail" tamano={18} /></span>
                     <div className="tarjeta-titulo">
@@ -299,7 +299,7 @@ export function Correo() {
                     <span className="ficha">{hace(p.updatedAt)}</span>
                   </div>
                   <div className="tarjeta-pie">
-                    <button className="btn btn-pequeno" onClick={() => usarPlantilla(p)}>
+                    <button className="cr-btn cr-btn-glass cr-btn-sm" onClick={() => usarPlantilla(p)}>
                       <Icono nombre="send" tamano={13} />
                       Usar
                     </button>
@@ -317,7 +317,7 @@ export function Correo() {
           <>
             <div className="acciones-fila subir">
               {/* Un enlace y no un botón: Google redirige, no hay nada que pedir con fetch. */}
-              <a className="btn btn-principal" href={urlApi("/auth/google/start")}>
+              <a className="cr-btn cr-btn-primary" href={urlApi("/auth/google/start")}>
                 <Icono nombre="link" tamano={15} />
                 Conectar una cuenta de Google
               </a>
@@ -330,7 +330,7 @@ export function Correo() {
             ) : (
               <div className="rejilla">
                 {listaCuentas.map((c, i) => (
-                  <article key={c.id} className="tarjeta cristal subir" style={{ "--i": i + 2 } as React.CSSProperties}>
+                  <article key={c.id} className="tarjeta cr-glass subir" style={{ "--i": i + 2 } as React.CSSProperties}>
                     <div className="tarjeta-cab">
                       <Avatar nombre={c.name ?? c.email} imagen={c.picture} tamano={42} />
                       <div className="tarjeta-titulo">
