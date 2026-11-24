@@ -34,6 +34,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
 	"github.com/Romanxt66/Home_Lab/backend/internal/web"
+	"github.com/Romanxt66/Home_Lab/backend/internal/workspace"
 )
 
 func main() {
@@ -47,6 +48,12 @@ func main() {
 		log.Fatalf("base de datos: %v", err)
 	}
 	defer db.Close()
+
+	// El espacio de trabajo crea sus propias tablas (hl_workspace_*) al arrancar.
+	// Si no pudiera, solo ese módulo falla: no se tumba el resto del panel.
+	if err := workspace.Migrar(context.Background(), db); err != nil {
+		log.Printf("espacio de trabajo: no se pudieron crear las tablas, el módulo no funcionará: %v", err)
+	}
 
 	// ── Cableado ───────────────────────────────────────────────────────────
 	sessions := auth.NewSessions(cfg.SessionSecret)
@@ -96,6 +103,7 @@ func main() {
 		notifications.NewServicioNotifier(notificationService),
 	)
 	calendarHandler := calendar.NewHandler(calendarService)
+	workspaceHandler := workspace.NewHandler(workspace.NewService(workspace.NewPostgresRepo(db)))
 
 	// Las automatizaciones reaccionan a sucesos de otros módulos. El
 	// rellenado de plantillas se le pasa como función para no hacerle
@@ -240,6 +248,7 @@ func main() {
 	schedulerHandler.Register(privadas.Group("/scheduler"))
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
+	workspaceHandler.Register(privadas.Group("/workspace"))
 	automationHandler.Register(privadas.Group("/automations"))
 	if gmailOAuth != nil {
 		// Mismas rutas que el Lab: son las que ya están registradas en Google Cloud.
@@ -397,6 +406,7 @@ func (p *puenteDeAutomatizaciones) Disparar(ctx context.Context, disparador stri
 // destinosDelAsistente son las secciones a las que el asistente puede llevar
 // al usuario. Los identificadores son los de las rutas de la interfaz.
 var destinosDelAsistente = []Destino{
+	{"workspace", "Espacio de trabajo"},
 	{"email-automation", "Automatización de correos"},
 	{"scraper", "Scraper / APIs"},
 	{"scheduler", "Tareas programadas"},

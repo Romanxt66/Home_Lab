@@ -12,6 +12,7 @@ import { GitHub } from "./pages/GitHub";
 import { Inicio } from "./pages/Inicio";
 import { Scraper } from "./pages/Scraper";
 import { Tareas } from "./pages/Tareas";
+import { Espacio } from "./pages/Espacio";
 import { Telegram } from "./pages/Telegram";
 import { Usuarios } from "./pages/Usuarios";
 import { Asistente } from "./ui/Asistente";
@@ -53,6 +54,7 @@ function Raiz() {
       <main className="cr-main">
         <Routes>
           <Route path="/" element={<Inicio />} />
+          <Route path="/workspace" element={<Espacio />} />
           <Route path="/calendar" element={<Calendario />} />
           <Route path="/scheduler" element={<Tareas />} />
           <Route path="/automations" element={<Automatizaciones />} />

@@ -69,7 +69,25 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return cuerpo as T;
 }
 
+/** Sube un formulario con archivos. Sin Content-Type: lo pone el navegador, con su separador. */
+async function subir<T>(path: string, datos: FormData): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/api${path}`, { method: "POST", body: datos, credentials: "include" });
+  } catch {
+    throw new ApiError("No se pudo conectar con el servidor.", 0);
+  }
+  const cuerpo = await res.json().catch(() => null);
+  if (!res.ok) {
+    const mensaje = (cuerpo as { error?: string } | null)?.error ?? "Ocurrió un error inesperado.";
+    if (res.status === 401) throw new SinSesionError(mensaje);
+    throw new ApiError(mensaje, res.status);
+  }
+  return cuerpo as T;
+}
+
 export const api = {
+  subir,
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),

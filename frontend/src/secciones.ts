@@ -10,6 +10,7 @@ export interface SeccionDelPanel extends Seccion {
 /** Las secciones del panel. Añadir un módulo es añadir una línea aquí. */
 export const SECCIONES: SeccionDelPanel[] = [
   { ruta: "/", etiqueta: "Inicio", corta: "inicio", icono: "home", detalle: "Tu panel de herramientas." },
+  { ruta: "/workspace", etiqueta: "Espacio de trabajo", corta: "espacio", icono: "folder", detalle: "Tus skills y documentos .md para Claude, con historial." },
   { ruta: "/calendar", etiqueta: "Calendario", corta: "agenda", icono: "calendar", detalle: "Eventos y recordatorios que te avisan por Telegram." },
   { ruta: "/automations", etiqueta: "Automatizaciones", corta: "reglas", icono: "bolt", detalle: "Reglas «cuando pasa esto, haz aquello»." },
   { ruta: "/coolify", etiqueta: "Coolify", corta: "servidor", icono: "server", detalle: "Aplicaciones, bases y despliegues de tu servidor." },

@@ -384,3 +384,42 @@ export interface RespuestaAsistente {
   toolsUsed: string[];
   navigateTo: string | null;
 }
+
+export type TipoEspacio = "skill" | "doc";
+
+export interface ElementoEspacio {
+  id: string;
+  kind: TipoEspacio;
+  name: string;
+  description: string;
+  visibility: "private" | "shared";
+  version: number;
+  files: number;
+  bytes: number;
+  ownerName: string;
+  mine: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ArchivoEspacio {
+  path: string;
+  bytes: number;
+  text: boolean;
+}
+
+export interface VersionEspacio {
+  number: number;
+  message: string;
+  authorName: string;
+  description: string;
+  files: number;
+  bytes: number;
+  createdAt: string;
+}
+
+export interface DetalleEspacio {
+  item: ElementoEspacio;
+  files: ArchivoEspacio[];
+  versions: VersionEspacio[];
+}

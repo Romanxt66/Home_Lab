@@ -2,6 +2,10 @@ import type { CSSProperties } from "react";
 
 /** Trazos en una caja de 24×24. Para uno nuevo, basta con añadirlo aquí. */
 const TRAZOS = {
+  folder: "M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7z",
+  upload: "M12 16V4M7 9l5-5 5 5M5 20h14",
+  download: "M12 4v12M7 11l5 5 5-5M5 20h14",
+  file: "M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M9 13h6M9 17h6",
   home: "M4 11l8-7 8 7M6 10v10h12V10M10 20v-6h4v6",
   chevronL: "M15 6l-6 6 6 6",
   chevronR: "M9 6l6 6-6 6",

@@ -17,6 +17,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/scheduler"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
+	"github.com/Romanxt66/Home_Lab/backend/internal/workspace"
 )
 
 // Gin decide el árbol de rutas AL REGISTRARLAS y entra en pánico si dos se
@@ -51,6 +52,7 @@ func TestNingunaRutaChocaConOtra(t *testing.T) {
 	scraper.NewHandler(nil).Register(privadas.Group("/scraper"))
 	scheduler.NewHandler(nil).Register(privadas.Group("/scheduler"))
 	email.NewHandler(nil).Register(privadas.Group("/email"))
+	workspace.NewHandler(nil).Register(privadas.Group("/workspace"))
 	email.NewOAuthHandler(email.OAuthConfig{}, nil, nil, false).Register(privadas.Group("/email"))
 	calendar.NewHandler(nil).Register(privadas.Group("/calendar"))
 	automations.NewHandler(nil).Register(privadas.Group("/automations"))

@@ -26,6 +26,7 @@ tocan: el Lab original sigue usándolas.
 | Scraper, GitHub | Portado |
 | Coolify, administrador de bases de datos | Portado |
 | Asistente (Gemini) | Portado |
+| Espacio de trabajo (skills y documentos .md) | Nuevo, no existía en el Lab |
 
 El frontend cubre ya **todos** los módulos: acceso, inicio, calendario,
 automatizaciones, Coolify, administrador de bases de
@@ -36,6 +37,28 @@ de n8n.
 
 Un matiz: el frontend no tiene pruebas automáticas todavía (se ha verificado a
 mano contra una API simulada).
+
+## Espacio de trabajo
+
+Biblioteca de tus **skills de Claude** y de documentos **.md** de instrucciones
+(`CLAUDE.md`, reglas de proyecto, recetas), con historial de versiones.
+
+- Subes un `.skill` o `.zip`; se valida (necesita un `SKILL.md` con `name` y
+  `description`), se guarda y se puede ver por dentro, descargar o volver a una
+  versión anterior. «Bajar todo» da un zip listo para copiar a `~/.claude`.
+- Cada persona tiene su espacio **privado**; lo que marque como **compartido**
+  lo ve y lo baja el resto, pero solo su dueño lo edita (un administrador puede
+  retirarlo). Una skill es texto que Claude obedece: por eso nada ajeno llega a
+  nadie sin que lo elija.
+- Se guarda en PostgreSQL (`hl_workspace_item`, `_version` y `_file`). El
+  servicio crea esas tablas al arrancar si no existen; si no pudiera, solo falla
+  este módulo.
+- Los zips se leen con cuidado: rutas que se salen de la carpeta, enlaces
+  simbólicos, archivos de más de 5 MB o más de 12 MB en total se rechazan.
+
+Para probar el SQL contra una base de verdad:
+`WORKSPACE_TEST_DB="postgres://…" go test ./internal/workspace/` (sin esa
+variable esas pruebas se saltan).
 
 ## Diseño
 
