@@ -15,6 +15,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
 	"github.com/Romanxt66/Home_Lab/backend/internal/mcp"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
+	"github.com/Romanxt66/Home_Lab/backend/internal/oauth"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scheduler"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
 	"github.com/Romanxt66/Home_Lab/backend/internal/tokens"
@@ -56,7 +57,9 @@ func TestNingunaRutaChocaConOtra(t *testing.T) {
 	email.NewHandler(nil).Register(privadas.Group("/email"))
 	workspace.NewHandler(nil).Register(privadas.Group("/workspace"))
 	tokens.NewHandler(nil).Register(privadas.Group("/tokens"))
-	mcp.NewHandler(nil, nil, nil).Register(r)
+	mcp.NewHandler(nil, nil, nil, nil).Register(r)
+	oauth.NewHandler(nil).RegistrarPublico(r)
+	oauth.NewHandler(nil).RegistrarSesion(privadas.Group("/oauth"))
 	workspace.NewSyncHandler(nil, nil).Register(r.Group("/api/sync"))
 	email.NewOAuthHandler(email.OAuthConfig{}, nil, nil, false).Register(privadas.Group("/email"))
 	calendar.NewHandler(nil).Register(privadas.Group("/calendar"))

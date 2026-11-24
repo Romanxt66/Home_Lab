@@ -31,6 +31,7 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
 	"github.com/Romanxt66/Home_Lab/backend/internal/mcp"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
+	"github.com/Romanxt66/Home_Lab/backend/internal/oauth"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scheduler"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
 	"github.com/Romanxt66/Home_Lab/backend/internal/tokens"
@@ -58,6 +59,9 @@ func main() {
 	}
 	if err := tokens.Migrar(context.Background(), db); err != nil {
 		log.Printf("tokens: no se pudo crear la tabla, MCP no funcionará: %v", err)
+	}
+	if err := oauth.Migrar(context.Background(), db); err != nil {
+		log.Printf("oauth: no se pudieron crear las tablas, la conexión por OAuth no funcionará: %v", err)
 	}
 
 	// ── Cableado ───────────────────────────────────────────────────────────
@@ -113,10 +117,14 @@ func main() {
 	tokenService := tokens.NewService(tokens.NewPostgresRepo(db))
 	syncHandler := workspace.NewSyncHandler(workspaceService, tokenService)
 	tokenHandler := tokens.NewHandler(tokenService)
-	// El servidor MCP entra con un token personal, no con la cookie de sesión.
+	// Servidor de autorización OAuth: deja que claude.ai y otros clientes se conecten
+	// sin copiar un token a mano. Los tokens que emite se aceptan solo en /mcp.
+	oauthService := oauth.NewService(oauth.NewPostgresRepo(db), cfg.OAuthRedirectHosts)
+	oauthHandler := oauth.NewHandler(oauthService)
+	// El servidor MCP entra con un token (personal o de OAuth), no con la cookie de sesión.
 	mcpHandler := mcp.NewHandler(
 		mcp.NewServer("home-lab", "1.0.0", workspace.Instrucciones, workspace.Herramientas(workspaceService)),
-		tokenService, cfg.AllowedOrigins)
+		mcp.Combinar(tokenService, oauthService), cfg.AllowedOrigins, oauth.MetadatosRecurso)
 
 	// Las automatizaciones reaccionan a sucesos de otros módulos. El
 	// rellenado de plantillas se le pasa como función para no hacerle
@@ -224,9 +232,10 @@ func main() {
 	}
 
 	r := gin.New()
-	r.Use(gin.Logger(), gin.Recovery(), httpx.CORS(cfg.AllowedOrigins))
+	r.Use(gin.Logger(), gin.Recovery(), cabecerasDeSeguridad, httpx.CORS(cfg.AllowedOrigins))
 
 	mcpHandler.Register(r)
+	oauthHandler.RegistrarPublico(r)
 	// Sincronización de skills con token (la usa el plugin de Claude Code).
 	syncHandler.Register(r.Group("/api/sync"))
 
@@ -267,6 +276,7 @@ func main() {
 	calendarHandler.Register(privadas.Group("/calendar"))
 	workspaceHandler.Register(privadas.Group("/workspace"))
 	tokenHandler.Register(privadas.Group("/tokens"))
+	oauthHandler.RegistrarSesion(privadas.Group("/oauth"))
 	automationHandler.Register(privadas.Group("/automations"))
 	if gmailOAuth != nil {
 		// Mismas rutas que el Lab: son las que ya están registradas en Google Cloud.
@@ -435,4 +445,15 @@ var destinosDelAsistente = []Destino{
 	{"coolify", "Despliegues (Coolify)"},
 	{"users", "Usuarios"},
 	{"automations", "Automatizaciones"},
+}
+
+// cabecerasDeSeguridad impide que otra página incruste esta (la pantalla de
+// consentimiento de OAuth no debe poder ponerse bajo un clic engañoso) y que el
+// navegador adivine tipos de contenido.
+func cabecerasDeSeguridad(c *gin.Context) {
+	c.Header("X-Frame-Options", "DENY")
+	c.Header("Content-Security-Policy", "frame-ancestors 'none'")
+	c.Header("X-Content-Type-Options", "nosniff")
+	c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+	c.Next()
 }

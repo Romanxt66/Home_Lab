@@ -6,6 +6,7 @@ package httpx
 import (
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -20,6 +21,21 @@ const claveUsuario = "usuario"
 func CORS(origenes []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origen := c.GetHeader("Origin")
+
+		// Los endpoints públicos de OAuth los llaman también clientes que corren
+		// en un navegador (el inspector de MCP, por ejemplo). No usan la cookie, así
+		// que se pueden abrir a cualquier origen sin riesgo.
+		if esRutaAbierta(c.Request.URL.Path) {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+			c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, MCP-Protocol-Version")
+			if c.Request.Method == http.MethodOptions {
+				c.AbortWithStatus(http.StatusNoContent)
+				return
+			}
+			c.Next()
+			return
+		}
 
 		if origen != "" && slices.Contains(origenes, origen) {
 			c.Header("Access-Control-Allow-Origin", origen)
@@ -105,4 +121,16 @@ func ServerError(c *gin.Context, err error) {
 	_ = c.Error(err)
 	c.JSON(http.StatusInternalServerError,
 		gin.H{"error": "Ocurrió un error inesperado."})
+}
+
+// esRutaAbierta: rutas sin cookie que pueden llamarse desde cualquier origen.
+func esRutaAbierta(ruta string) bool {
+	if strings.HasPrefix(ruta, "/.well-known/") {
+		return true
+	}
+	switch ruta {
+	case "/oauth/register", "/oauth/token", "/oauth/revoke":
+		return true
+	}
+	return false
 }

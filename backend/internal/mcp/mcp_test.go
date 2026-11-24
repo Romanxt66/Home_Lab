@@ -197,7 +197,7 @@ func servidor(origenes ...string) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	id := &tokens.Identidad{UsuarioID: "ana", Nombre: "Ana", Alcance: tokens.Lectura}
-	NewHandler(NewServer("x", "1", "", herramientas()), autFalsa{id}, origenes).Register(r)
+	NewHandler(NewServer("x", "1", "", herramientas()), autFalsa{id}, origenes, func(*gin.Context) string { return "https://lab.ejemplo/.well-known/oauth-protected-resource/mcp" }).Register(r)
 	return r
 }
 
@@ -222,7 +222,8 @@ func TestHTTP_autenticacion(t *testing.T) {
 		"token vacío":  {"Authorization": "Bearer "},
 	} {
 		rec := post(r, cab, ping)
-		if rec.Code != 401 || !strings.Contains(rec.Header().Get("WWW-Authenticate"), "Bearer") {
+		if rec.Code != 401 || !strings.Contains(rec.Header().Get("WWW-Authenticate"), "Bearer") ||
+			!strings.Contains(rec.Header().Get("WWW-Authenticate"), `resource_metadata="https://lab.ejemplo/.well-known/oauth-protected-resource/mcp"`) {
 			t.Errorf("%s: %d %v", nombre, rec.Code, rec.Header())
 		}
 	}
@@ -279,3 +280,23 @@ func TestHTTP_origen(t *testing.T) {
 		t.Errorf("mismo origen: %d", rec.Code)
 	}
 }
+
+func TestCombinar(t *testing.T) {
+	uno := autFalsa{&tokens.Identidad{UsuarioID: "uno"}}
+	vacio := autVacia{}
+	// Se queda con el primero que reconoce el token.
+	if id, _ := Combinar(vacio, uno).Autenticar(context.Background(), "hl_valido"); id == nil || id.UsuarioID != "uno" {
+		t.Error("debía llegar al segundo autenticador")
+	}
+	if id, err := Combinar(vacio, vacio).Autenticar(context.Background(), "x"); id != nil || err != nil {
+		t.Error("si ninguno lo reconoce, no es nadie y no es un error")
+	}
+	// Un fallo técnico no se confunde con «token inválido» ni se salta.
+	if _, err := Combinar(uno, vacio).Autenticar(context.Background(), "hl_error"); err == nil {
+		t.Error("un error técnico debe propagarse")
+	}
+}
+
+type autVacia struct{}
+
+func (autVacia) Autenticar(context.Context, string) (*tokens.Identidad, error) { return nil, nil }

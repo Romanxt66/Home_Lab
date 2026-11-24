@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 
 import { api, ApiError, origenApi } from "../../api/client";
-import type { TokenApi } from "../../api/tipos";
+import type { ConexionOAuth, TokenApi } from "../../api/tipos";
 import { Button, Glass } from "../../design";
 import { Alerta } from "../../ui/Alerta";
 import { Codigo } from "../../ui/Codigo";
@@ -21,6 +21,8 @@ const PERMISOS = {
 /** Enlazar con Claude: tokens personales para el servidor MCP del espacio de trabajo. */
 export function ConexionClaude() {
   const tokens = useDatos<TokenApi[]>("/tokens");
+  const conexiones = useDatos<ConexionOAuth[]>("/oauth/grants");
+  const [porDesconectar, setPorDesconectar] = useState<ConexionOAuth | null>(null);
   const [creando, setCreando] = useState(false);
   const [recien, setRecien] = useState<{ token: string; item: TokenApi } | null>(null);
   const [porRevocar, setPorRevocar] = useState<TokenApi | null>(null);
@@ -29,6 +31,18 @@ export function ConexionClaude() {
   const activos = (tokens.datos ?? []).filter((t) => !t.revokedAt);
   const revocados = (tokens.datos ?? []).filter((t) => t.revokedAt);
   const url = `${origenApi()}/mcp`;
+
+  async function desconectar() {
+    if (!porDesconectar) return;
+    try {
+      await api.del(`/oauth/grants/${porDesconectar.id}`);
+      conexiones.recargar();
+    } catch (e) {
+      setAviso(e instanceof Error ? e.message : "No se pudo desconectar.");
+    } finally {
+      setPorDesconectar(null);
+    }
+  }
 
   async function revocar() {
     if (!porRevocar) return;
@@ -47,22 +61,53 @@ export function ConexionClaude() {
       <section className="cr-glass cr-pad panel" aria-label="Cómo conectar">
         <h2 className="heading">Conecta Claude a tu espacio de trabajo</h2>
         <p className="body cr-muted">
-          Home Lab habla el protocolo MCP: con un token, Claude Code puede <strong>listar y leer tus skills y documentos</strong> y,
-          si lo permites, <strong>guardar documentos</strong>, sin que tengas que copiar nada a mano.
+          Home Lab habla el protocolo MCP: Claude puede <strong>listar y leer tus skills y documentos</strong> y, si lo permites,{" "}
+          <strong>guardar documentos</strong>, sin que tengas que copiar nada a mano. Hay dos formas de conectarlo.
         </p>
+        <h3 className="label">Desde claude.ai (sin tokens)</h3>
+        <ol className="pasos-conexion">
+          <li>En claude.ai, abre <em>Ajustes → Conectores → Añadir conector personalizado</em>.</li>
+          <li>Pega esta dirección: <code>{url}</code></li>
+          <li>Te pedirá entrar en Home Lab y elegir qué permiso concedes. Luego aparece aquí abajo, en «Aplicaciones conectadas».</li>
+        </ol>
+        <h3 className="label">Desde Claude Code (con un token)</h3>
         <ol className="pasos-conexion">
           <li>Crea un token aquí abajo. Se enseña <strong>una sola vez</strong>.</li>
           <li>Ejecuta en tu terminal el comando que te damos, con ese token.</li>
-          <li>En Claude Code, pide cosas como «lee mi CLAUDE.md de homelab» o «guarda estas reglas como documento».</li>
+          <li>Pide cosas como «lee mi CLAUDE.md de homelab» o «guarda estas reglas como documento».</li>
         </ol>
-        <Alerta>
-          Funciona con <strong>Claude Code</strong> y con cualquier cliente MCP que deje enviar una cabecera. Todavía no hay OAuth, así que no se puede
-          añadir como conector desde claude.ai.
-        </Alerta>
       </section>
 
       <div className="barra-herramientas">
-        <h2 className="heading">Tus tokens</h2>
+        <h2 className="heading">Aplicaciones conectadas</h2>
+      </div>
+      {conexiones.error && <Alerta tipo="error">{conexiones.error}</Alerta>}
+      {conexiones.cargando && !conexiones.datos ? (
+        <Esqueletos cantidad={1} />
+      ) : (conexiones.datos ?? []).length === 0 ? (
+        <p className="texto-apagado">Ninguna aplicación se ha conectado por OAuth todavía.</p>
+      ) : (
+        <ul className="cr-glass lista-tokens" aria-label="Aplicaciones conectadas">
+          {(conexiones.datos ?? []).map((c) => (
+            <li key={c.id}>
+              <span className="tarjeta-avatar" style={{ width: 36, height: 36 }}><Icono nombre="link" tamano={16} /></span>
+              <span className="historial-texto">
+                <span className="label">{c.clientName}</span>
+                <span className="caption cr-muted">
+                  {c.scope === "write" ? "leer y guardar" : "solo leer"} · conectada {hace(c.createdAt)} ·{" "}
+                  {c.lastUsedAt ? `usada ${hace(c.lastUsedAt)}` : "sin usar todavía"}
+                </span>
+              </span>
+              <button className="cr-btn cr-btn-ghost cr-btn-danger cr-btn-sm" onClick={() => setPorDesconectar(c)}>
+                Desconectar
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="barra-herramientas">
+        <h2 className="heading">Tus tokens personales</h2>
         <span style={{ flex: 1 }} />
         <button className="cr-btn cr-btn-primary cr-btn-sm" onClick={() => setCreando(true)}>
           <Icono nombre="plus" tamano={14} />
@@ -111,6 +156,16 @@ export function ConexionClaude() {
         />
       )}
       {recien && <TokenCreado url={url} token={recien.token} item={recien.item} alCerrar={() => setRecien(null)} />}
+      {porDesconectar && (
+        <Confirmar
+          titulo={`¿Desconectar «${porDesconectar.clientName}»?`}
+          texto="Dejará de poder entrar al momento. Si quiere volver, tendrás que autorizarla otra vez."
+          etiquetaConfirmar="Desconectar"
+          peligro
+          alConfirmar={() => void desconectar()}
+          alCancelar={() => setPorDesconectar(null)}
+        />
+      )}
       {porRevocar && (
         <Confirmar
           titulo={`¿Revocar «${porRevocar.name}»?`}

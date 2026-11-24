@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { ProveedorSesion, useSesion } from "./api/sesion";
 import { Acceso } from "./pages/Acceso";
@@ -13,6 +13,7 @@ import { Inicio } from "./pages/Inicio";
 import { Scraper } from "./pages/Scraper";
 import { Tareas } from "./pages/Tareas";
 import { Espacio } from "./pages/Espacio";
+import { AutorizarOAuth } from "./pages/AutorizarOAuth";
 import { Telegram } from "./pages/Telegram";
 import { Usuarios } from "./pages/Usuarios";
 import { Asistente } from "./ui/Asistente";
@@ -36,6 +37,29 @@ export default function App() {
 /** Decide qué se ve: el acceso o el panel. */
 function Raiz() {
   const { usuario, cargando } = useSesion();
+  const { pathname, search } = useLocation();
+  const navegar = useNavigate();
+
+  // Si alguien llega a autorizar una aplicación sin sesión, hay que iniciarla antes, y
+  // el inicio de sesión con Google vuelve a «/». Se apunta a dónde iba para llevarle
+  // de vuelta, en lugar de obligarle a empezar la conexión de nuevo.
+  useEffect(() => {
+    if (cargando) return;
+    try {
+      if (!usuario) {
+        if (pathname === "/oauth/autorizar") sessionStorage.setItem("volver", pathname + search);
+        return;
+      }
+      const guardado = sessionStorage.getItem("volver");
+      if (guardado) {
+        sessionStorage.removeItem("volver");
+        // Solo se restaura la propia pantalla de autorización, nunca una dirección cualquiera.
+        if (pathname === "/" && guardado.startsWith("/oauth/autorizar?")) navegar(guardado, { replace: true });
+      }
+    } catch {
+      // Sin almacenamiento disponible: se pierde la comodidad, no la función.
+    }
+  }, [cargando, usuario, pathname, search, navegar]);
 
   // Sin esta espera se vería el acceso un instante aunque hubiera sesión.
   if (cargando) {
@@ -54,6 +78,7 @@ function Raiz() {
       <main className="cr-main">
         <Routes>
           <Route path="/" element={<Inicio />} />
+          <Route path="/oauth/autorizar" element={<AutorizarOAuth />} />
           <Route path="/workspace" element={<Espacio />} />
           <Route path="/calendar" element={<Calendario />} />
           <Route path="/scheduler" element={<Tareas />} />

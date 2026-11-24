@@ -83,9 +83,33 @@ herramientas) para que Claude Code lea y guarde en tu espacio sin copiar nada.
   un aviso al abrir sesión cuando hay skills nuevas. Para bajar las skills con
   sus archivos binarios usa `GET /api/sync/manifest` y `/api/sync/skills/:id`
   (solo lectura, solo lo tuyo, con el mismo token). Ver `claude-plugin/README.md`.
-- **Límites:** no hay OAuth, así que no se puede añadir como conector desde
-  claude.ai. Se valida la cabecera `Origin` (contra ataques de *DNS rebinding*)
-  y cada respuesta se corta a 100 KB.
+- **Límites:** se valida la cabecera `Origin` (contra ataques de *DNS rebinding*) y
+  cada respuesta se corta a 100 KB.
+
+### Conectarlo desde claude.ai (OAuth)
+
+Home Lab es también un **servidor de autorización OAuth** para MCP: en claude.ai,
+*Ajustes → Conectores → Añadir conector personalizado* y la dirección
+`https://<tu-dominio>/mcp`. Claude descubre solo cómo autorizarse; la persona entra
+en Home Lab, ve quién pide acceso y **elige el permiso** (solo leer, o leer y guardar
+documentos). Lo concedido se ve y se quita en *Espacio de trabajo → Claude →
+Aplicaciones conectadas*.
+
+- **Qué implementa:** metadatos (RFC 9728 y 8414), registro dinámico de clientes
+  (RFC 7591), código con **PKCE S256 obligatorio** (solo clientes públicos), tokens
+  de acceso de 1 hora y de refresco de 30 días **rotatorios**, y revocación (RFC 7009).
+- **Reutilizar un refresco ya gastado revoca toda la concesión:** o es el cliente o es
+  un ladrón, y no se puede saber cuál.
+- **Direcciones de retorno:** solo `https` a hosts autorizados y `http` a localhost.
+  Por defecto `claude.ai` y `claude.com`; se cambia con `OAUTH_REDIRECT_HOSTS`
+  (lista separada por comas; `*` admite cualquier host https).
+- **Solo para `/mcp`:** un token de OAuth no sirve en el resto de la API.
+- **Abuso:** el registro es público, así que está limitado (20 por hora y IP, 500
+  clientes a la vez, y los que nadie usa en una semana se descartan); `/oauth/token`
+  admite 120 peticiones por minuto y IP. «Autorizar» exige JSON y rechaza peticiones
+  de otro sitio, además de `SameSite=Lax`. Las páginas no se pueden incrustar.
+- Tablas: `hl_oauth_client`, `_code`, `_grant` y `_token` (de los tokens solo se
+  guarda la huella SHA-256). Pruebas contra una base real: `OAUTH_TEST_DB`.
 
 ## Diseño
 

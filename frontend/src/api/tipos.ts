@@ -433,3 +433,18 @@ export interface TokenApi {
   lastUsedAt: string | null;
   revokedAt: string | null;
 }
+
+export interface ConsentimientoOAuth {
+  clientName: string;
+  redirectHost: string;
+  loopback: boolean;
+  requestedWrite: boolean;
+}
+
+export interface ConexionOAuth {
+  id: string;
+  clientName: string;
+  scope: "read" | "write";
+  createdAt: string;
+  lastUsedAt: string | null;
+}

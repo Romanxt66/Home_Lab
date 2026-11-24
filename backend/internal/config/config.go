@@ -23,6 +23,11 @@ type Config struct {
 	// que sin esto el navegador bloquea las peticiones.
 	AllowedOrigins []string
 
+	// Hosts https a los que el servidor OAuth permite devolver a la persona
+	// (OAUTH_REDIRECT_HOSTS, separados por comas; «*» permite cualquiera). Por
+	// defecto, los de Claude. Volver a localhost se admite siempre (clientes de escritorio).
+	OAuthRedirectHosts []string
+
 	// En producción la cookie viaja solo por HTTPS.
 	Production bool
 
@@ -90,6 +95,12 @@ func Load() (Config, error) {
 	for _, o := range strings.Split(origins, ",") {
 		if o = strings.TrimSpace(o); o != "" {
 			cfg.AllowedOrigins = append(cfg.AllowedOrigins, o)
+		}
+	}
+
+	for _, h := range strings.Split(valueOr(os.Getenv("OAUTH_REDIRECT_HOSTS"), "claude.ai,claude.com"), ",") {
+		if h = strings.ToLower(strings.TrimSpace(h)); h != "" {
+			cfg.OAuthRedirectHosts = append(cfg.OAuthRedirectHosts, h)
 		}
 	}
 

@@ -737,6 +737,11 @@ input[aria-invalid="true"] { border-color: var(--peligro-borde); }
 .permiso.elegido { border-color: var(--brand); background: var(--brand-soft); }
 .permiso input { margin-top: 3px; accent-color: var(--brand-fill); }
 
+/* Consentimiento de OAuth */
+.consentimiento { display: grid; gap: var(--space-4); max-width: 560px; }
+.consentimiento-quien { display: flex; align-items: center; gap: var(--space-3); }
+.consentimiento-acciones { display: flex; justify-content: flex-end; gap: var(--space-2); }
+
 /* ── Móvil ───────────────────────────────────────────────────── */
 @media (max-width: 899px) {
   .cr-solo-movil { display: block; }

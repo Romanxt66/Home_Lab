@@ -16,16 +16,38 @@ type Autenticador interface {
 	Autenticar(ctx context.Context, claro string) (*tokens.Identidad, error)
 }
 
+// Combinar prueba varios autenticadores en orden y se queda con el primero que
+// reconozca el token (aquí: tokens personales y tokens de OAuth). Un error
+// técnico de cualquiera corta la cadena: no se sigue como si el token no valiera.
+func Combinar(autenticadores ...Autenticador) Autenticador {
+	return combinado(autenticadores)
+}
+
+type combinado []Autenticador
+
+func (c combinado) Autenticar(ctx context.Context, claro string) (*tokens.Identidad, error) {
+	for _, a := range c {
+		id, err := a.Autenticar(ctx, claro)
+		if err != nil || id != nil {
+			return id, err
+		}
+	}
+	return nil, nil
+}
+
 // Handler monta el servidor en una ruta de Gin.
 type Handler struct {
 	servidor *Server
 	auth     Autenticador
 	// origenOK decide si una cabecera Origin es aceptable.
 	origenOK func(origen, host string) bool
+	// metadatos da la dirección de los metadatos OAuth del recurso, que se anuncia
+	// en el 401 para que el cliente sepa dónde autorizarse. Nil: no hay OAuth.
+	metadatos func(*gin.Context) string
 }
 
-func NewHandler(s *Server, auth Autenticador, origenesPermitidos []string) *Handler {
-	return &Handler{servidor: s, auth: auth, origenOK: origenAceptable(origenesPermitidos)}
+func NewHandler(s *Server, auth Autenticador, origenesPermitidos []string, metadatos func(*gin.Context) string) *Handler {
+	return &Handler{servidor: s, auth: auth, origenOK: origenAceptable(origenesPermitidos), metadatos: metadatos}
 }
 
 // origenAceptable: los clientes MCP de verdad (Claude Code, un script) no mandan
@@ -68,7 +90,7 @@ func (h *Handler) post(c *gin.Context) {
 
 	claro, ok := tokens.ExtraerBearer(c.GetHeader("Authorization"))
 	if !ok {
-		sinAutorizar(c)
+		h.sinAutorizar(c)
 		return
 	}
 	id, err := h.auth.Autenticar(c.Request.Context(), claro)
@@ -78,7 +100,7 @@ func (h *Handler) post(c *gin.Context) {
 		return
 	}
 	if id == nil {
-		sinAutorizar(c)
+		h.sinAutorizar(c)
 		return
 	}
 
@@ -98,8 +120,12 @@ func (h *Handler) post(c *gin.Context) {
 	c.Data(http.StatusOK, "application/json", resp)
 }
 
-func sinAutorizar(c *gin.Context) {
-	// Sin resource_metadata: no hay OAuth, solo un token personal.
-	c.Header("WWW-Authenticate", `Bearer realm="homelab"`)
-	c.JSON(http.StatusUnauthorized, gin.H{"error": "Falta un token válido. Créalo en Espacio de trabajo → Conexión con Claude."})
+func (h *Handler) sinAutorizar(c *gin.Context) {
+	cabecera := `Bearer realm="homelab"`
+	if h.metadatos != nil {
+		// Así un cliente OAuth (claude.ai) descubre dónde y cómo autorizarse (RFC 9728).
+		cabecera += `, resource_metadata="` + h.metadatos(c) + `"`
+	}
+	c.Header("WWW-Authenticate", cabecera)
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "Falta un token válido. Conéctalo por OAuth o crea uno en Espacio de trabajo → Claude."})
 }
