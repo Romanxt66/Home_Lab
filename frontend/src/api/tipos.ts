@@ -423,3 +423,13 @@ export interface DetalleEspacio {
   files: ArchivoEspacio[];
   versions: VersionEspacio[];
 }
+
+export interface TokenApi {
+  id: string;
+  name: string;
+  scope: "read" | "write";
+  prefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+}

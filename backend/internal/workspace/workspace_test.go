@@ -4,6 +4,8 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -173,11 +175,12 @@ func TestLeerCabecera(t *testing.T) {
 type repoFalso struct {
 	elementos map[string]*Elemento
 	archivos  map[string]map[int][]Archivo
+	versiones map[string]map[int]Version
 	seq       int
 }
 
 func nuevoRepo() *repoFalso {
-	return &repoFalso{elementos: map[string]*Elemento{}, archivos: map[string]map[int][]Archivo{}}
+	return &repoFalso{elementos: map[string]*Elemento{}, archivos: map[string]map[int][]Archivo{}, versiones: map[string]map[int]Version{}}
 }
 
 func (r *repoFalso) Listar(_ context.Context, uid string, tipo Tipo) ([]Elemento, error) {
@@ -212,6 +215,8 @@ func (r *repoFalso) Crear(_ context.Context, e Elemento, v Version, a []Archivo)
 	e.Version, e.Descripcion, e.DuenoNombre = 1, v.Descripcion, e.DuenoID
 	r.elementos[e.ID] = &e
 	r.archivos[e.ID] = map[int][]Archivo{1: a}
+	v.Numero = 1
+	r.versiones[e.ID] = map[int]Version{1: v}
 	c := e
 	return &c, nil
 }
@@ -220,6 +225,8 @@ func (r *repoFalso) NuevaVersion(_ context.Context, id string, v Version, a []Ar
 	e.Version++
 	e.Descripcion = v.Descripcion
 	r.archivos[id][e.Version] = a
+	v.Numero = e.Version
+	r.versiones[id][e.Version] = v
 	c := *e
 	return &c, nil
 }
@@ -229,9 +236,10 @@ func (r *repoFalso) CambiarVisibilidad(_ context.Context, id string, v Visibilid
 }
 func (r *repoFalso) Versiones(_ context.Context, id string) ([]Version, error) {
 	var out []Version
-	for n := range r.archivos[id] {
-		out = append(out, Version{Numero: n})
+	for _, v := range r.versiones[id] {
+		out = append(out, v)
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Numero > out[j].Numero })
 	return out, nil
 }
 func (r *repoFalso) Archivos(_ context.Context, id string, version int) ([]Archivo, error) {
@@ -360,5 +368,30 @@ func TestDescargarTodo(t *testing.T) {
 func TestDescripcionDeDoc(t *testing.T) {
 	if got := DescripcionDeDoc("\n\n## Reglas del repo\ntexto"); got != "Reglas del repo" {
 		t.Errorf("quería el primer título, salió %q", got)
+	}
+}
+
+func TestTopeDeElementos(t *testing.T) {
+	s := NewService(nuevoRepo())
+	ctx := context.Background()
+	for i := 0; i < MaxElementos; i++ {
+		r, err := s.GuardarDoc(ctx, ana, fmt.Sprintf("d/%d.md", i), "# x", "", Privado)
+		if err != nil || !r.OK {
+			t.Fatalf("el documento %d debía poder crearse: %v %s", i, err, r.Error)
+		}
+	}
+	if r, _ := s.GuardarDoc(ctx, ana, "d/uno-mas.md", "# x", "", Privado); r.OK || !strings.Contains(r.Error, "300") {
+		t.Errorf("el 301 debía rechazarse: %+v", r)
+	}
+	// Seguir editando uno existente sí se puede, y el tope es por persona.
+	if r, _ := s.GuardarDoc(ctx, ana, "d/0.md", "# cambiado", "", Privado); !r.OK {
+		t.Error("editar uno que ya existe no cuenta como crear")
+	}
+	if r, _ := s.GuardarDoc(ctx, luis, "d/0.md", "# x", "", Privado); !r.OK {
+		t.Error("el tope es por persona")
+	}
+	// Lo ajeno compartido no cuenta contra el tope de quien lo ve.
+	if r, _ := s.SubirSkill(ctx, ana, zipDe(t, map[string]string{"SKILL.md": skillMD}), "", Privado); !r.OK {
+		t.Error("el tope es por tipo: las skills tienen el suyo")
 	}
 }

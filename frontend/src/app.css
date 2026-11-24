@@ -723,6 +723,20 @@ input[aria-invalid="true"] { border-color: var(--peligro-borde); }
 .editor-docs-texto { min-height: 26rem; resize: vertical; line-height: 1.6; font-size: 13px; }
 .editor-docs-pie { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: center; }
 
+/* Tokens y conexión con Claude */
+.cuerpo-token { display: grid; gap: var(--space-3); grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.cuerpo-token .codigo { min-width: 0; }
+.pasos-conexion { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-2); font: 500 14px/21px var(--font-sans); color: var(--ink-muted); }
+.lista-tokens { list-style: none; margin: 0; padding: var(--space-2) var(--space-4); display: grid; }
+.lista-tokens li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--hairline); }
+.lista-tokens li:first-child { border-top: 0; }
+.lista-tokens li.revocado { opacity: 0.55; }
+.lista-tokens code, .cr-dialog code { font-family: var(--font-mono); font-size: 12px; }
+.permiso { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: start; padding: var(--space-3); margin-bottom: var(--space-2); border: 1px solid var(--hairline); border-radius: var(--radius-md); cursor: pointer; }
+.permiso > span { display: grid; gap: 2px; }
+.permiso.elegido { border-color: var(--brand); background: var(--brand-soft); }
+.permiso input { margin-top: 3px; accent-color: var(--brand-fill); }
+
 /* ── Móvil ───────────────────────────────────────────────────── */
 @media (max-width: 899px) {
   .cr-solo-movil { display: block; }

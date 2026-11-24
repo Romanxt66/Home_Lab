@@ -74,6 +74,9 @@ func (s *Service) SubirSkill(ctx context.Context, q Quien, datos []byte, mensaje
 		}
 		return kernel.Ok(*e), nil
 	}
+	if msg := s.comprobarTope(ctx, q, Skill); msg != "" {
+		return kernel.Err[Elemento](msg), nil
+	}
 	e, err := s.repo.Crear(ctx, Elemento{
 		Tipo: Skill, DuenoID: q.ID, Nombre: sk.Nombre, Descripcion: sk.Descripcion,
 		Visibilidad: normalizarVisibilidad(vis),
@@ -106,6 +109,9 @@ func (s *Service) GuardarDoc(ctx context.Context, q Quien, ruta, contenido, mens
 		return kernel.Result[Elemento]{}, err
 	}
 	if existente == nil {
+		if msg := s.comprobarTope(ctx, q, Doc); msg != "" {
+			return kernel.Err[Elemento](msg), nil
+		}
 		e, err := s.repo.Crear(ctx, Elemento{
 			Tipo: Doc, DuenoID: q.ID, Nombre: r.Value, Descripcion: v.Descripcion,
 			Visibilidad: normalizarVisibilidad(vis),
@@ -357,4 +363,51 @@ func carpetaSegura(nombre string) string {
 		return "persona"
 	}
 	return sb.String()
+}
+
+// Buscar encuentra un elemento por su id o por su nombre entre lo que esa
+// persona ve. Con compartido=false solo mira lo suyo; con true, también lo que
+// otras personas comparten (y en un empate gana lo propio).
+func (s *Service) Buscar(ctx context.Context, q Quien, tipo Tipo, ref string, compartido bool) (*Elemento, error) {
+	lista, err := s.repo.Listar(ctx, q.ID, tipo)
+	if err != nil {
+		return nil, err
+	}
+	ref = strings.TrimSpace(ref)
+	var ajeno *Elemento
+	for i := range lista {
+		e := lista[i]
+		if e.ID != ref && e.Nombre != ref {
+			continue
+		}
+		if e.DuenoID == q.ID {
+			return &e, nil
+		}
+		if compartido && ajeno == nil {
+			ajeno = &e
+		}
+	}
+	if ajeno == nil {
+		return nil, ErrNoEncontrado
+	}
+	return ajeno, nil
+}
+
+// comprobarTope devuelve un mensaje si la persona ya tiene el máximo de
+// elementos de ese tipo; vacío si puede crear otro.
+func (s *Service) comprobarTope(ctx context.Context, q Quien, tipo Tipo) string {
+	lista, err := s.repo.Listar(ctx, q.ID, tipo)
+	if err != nil {
+		return "" // no se bloquea al usuario por no poder contar; el repositorio ya fallará si hay un problema real
+	}
+	propios := 0
+	for _, e := range lista {
+		if e.DuenoID == q.ID {
+			propios++
+		}
+	}
+	if propios >= MaxElementos {
+		return "Has llegado al máximo de 300 elementos de este tipo. Elimina alguno que no uses antes de crear otro."
+	}
+	return ""
 }

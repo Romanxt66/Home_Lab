@@ -9,6 +9,11 @@
 // sirve el mismo binario, así que basta con una ruta relativa.
 const BASE = import.meta.env.VITE_API_URL ?? "";
 
+/** Origen público de la aplicación: a donde apunta un cliente externo como Claude Code. */
+export function origenApi(): string {
+  return BASE || window.location.origin;
+}
+
 /** Dirección completa de una ruta de la API, para enlaces que no son fetch. */
 export function urlApi(ruta: string): string {
   return `${BASE}/api${ruta}`;

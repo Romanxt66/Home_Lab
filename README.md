@@ -57,8 +57,30 @@ Biblioteca de tus **skills de Claude** y de documentos **.md** de instrucciones
   simbólicos, archivos de más de 5 MB o más de 12 MB en total se rechazan.
 
 Para probar el SQL contra una base de verdad:
-`WORKSPACE_TEST_DB="postgres://…" go test ./internal/workspace/` (sin esa
-variable esas pruebas se saltan).
+`WORKSPACE_TEST_DB="postgres://…" go test ./internal/workspace/` y
+`TOKENS_TEST_DB="postgres://…" go test ./internal/tokens/` (sin esas variables
+esas pruebas se saltan; las primeras vacían las tablas `hl_workspace_*`).
+
+### Enlazarlo con Claude (servidor MCP)
+
+El panel expone un servidor **MCP** en `POST /mcp` (Streamable HTTP, solo
+herramientas) para que Claude Code lea y guarde en tu espacio sin copiar nada.
+
+- **Entra con un token personal**, no con la cookie. Se crea en *Espacio de
+  trabajo → Claude*, se enseña **una sola vez** y en la base solo queda su
+  huella SHA-256. Hereda tus permisos, se revoca al instante y deja de valer si
+  la cuenta deja de estar aprobada. Máximo 10 activos por persona.
+- **Dos permisos:** *solo leer* (por defecto) o *leer y guardar documentos*. Un
+  token de lectura ni ve la herramienta que escribe.
+- **Herramientas:** `list_skills`, `get_skill`, `read_skill_file`, `list_docs`,
+  `read_doc` y `save_doc`. Por defecto solo ven lo tuyo; con `include_shared`
+  también lo que otras personas comparten, y entonces el texto llega marcado
+  como de un tercero para que Claude no obedezca lo que haya dentro.
+- **Conectar Claude Code:**
+  `claude mcp add --transport http homelab https://<tu-dominio>/mcp --header "Authorization: Bearer <token>"`
+- **Límites:** no hay OAuth, así que no se puede añadir como conector desde
+  claude.ai. Se valida la cabecera `Origin` (contra ataques de *DNS rebinding*)
+  y cada respuesta se corta a 100 KB.
 
 ## Diseño
 

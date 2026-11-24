@@ -29,9 +29,11 @@ import (
 	"github.com/Romanxt66/Home_Lab/backend/internal/email"
 	"github.com/Romanxt66/Home_Lab/backend/internal/github"
 	"github.com/Romanxt66/Home_Lab/backend/internal/httpx"
+	"github.com/Romanxt66/Home_Lab/backend/internal/mcp"
 	"github.com/Romanxt66/Home_Lab/backend/internal/notifications"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scheduler"
 	"github.com/Romanxt66/Home_Lab/backend/internal/scraper"
+	"github.com/Romanxt66/Home_Lab/backend/internal/tokens"
 	"github.com/Romanxt66/Home_Lab/backend/internal/users"
 	"github.com/Romanxt66/Home_Lab/backend/internal/web"
 	"github.com/Romanxt66/Home_Lab/backend/internal/workspace"
@@ -53,6 +55,9 @@ func main() {
 	// Si no pudiera, solo ese módulo falla: no se tumba el resto del panel.
 	if err := workspace.Migrar(context.Background(), db); err != nil {
 		log.Printf("espacio de trabajo: no se pudieron crear las tablas, el módulo no funcionará: %v", err)
+	}
+	if err := tokens.Migrar(context.Background(), db); err != nil {
+		log.Printf("tokens: no se pudo crear la tabla, MCP no funcionará: %v", err)
 	}
 
 	// ── Cableado ───────────────────────────────────────────────────────────
@@ -103,7 +108,14 @@ func main() {
 		notifications.NewServicioNotifier(notificationService),
 	)
 	calendarHandler := calendar.NewHandler(calendarService)
-	workspaceHandler := workspace.NewHandler(workspace.NewService(workspace.NewPostgresRepo(db)))
+	workspaceService := workspace.NewService(workspace.NewPostgresRepo(db))
+	workspaceHandler := workspace.NewHandler(workspaceService)
+	tokenService := tokens.NewService(tokens.NewPostgresRepo(db))
+	tokenHandler := tokens.NewHandler(tokenService)
+	// El servidor MCP entra con un token personal, no con la cookie de sesión.
+	mcpHandler := mcp.NewHandler(
+		mcp.NewServer("home-lab", "1.0.0", workspace.Instrucciones, workspace.Herramientas(workspaceService)),
+		tokenService, cfg.AllowedOrigins)
 
 	// Las automatizaciones reaccionan a sucesos de otros módulos. El
 	// rellenado de plantillas se le pasa como función para no hacerle
@@ -213,6 +225,8 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery(), httpx.CORS(cfg.AllowedOrigins))
 
+	mcpHandler.Register(r)
+
 	r.GET("/health", func(c *gin.Context) {
 		if err := db.Ping(); err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"estado": "sin base de datos"})
@@ -249,6 +263,7 @@ func main() {
 	emailHandler.Register(privadas.Group("/email"))
 	calendarHandler.Register(privadas.Group("/calendar"))
 	workspaceHandler.Register(privadas.Group("/workspace"))
+	tokenHandler.Register(privadas.Group("/tokens"))
 	automationHandler.Register(privadas.Group("/automations"))
 	if gmailOAuth != nil {
 		// Mismas rutas que el Lab: son las que ya están registradas en Google Cloud.

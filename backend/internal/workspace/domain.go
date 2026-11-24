@@ -46,6 +46,11 @@ const (
 	MaxBytesDocumento  = 1 << 20  // un .md
 	MaxLongitudCamino  = 200
 	MaxLongitudMensaje = 200
+	// MaxElementos por persona y tipo, y MaxVersiones por elemento. Un agente que
+	// guarde en bucle (o una persona con un script) no debe poder llenar la base:
+	// pasado el tope de versiones se descartan las más viejas.
+	MaxElementos = 300
+	MaxVersiones = 200
 )
 
 // Elemento es una skill o un documento. Su contenido vive en las versiones.

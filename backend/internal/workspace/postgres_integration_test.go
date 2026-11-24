@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sync"
 	"testing"
@@ -133,5 +134,37 @@ func TestPostgres_versionesConcurrentes(t *testing.T) {
 	d, _ := s.Detalle(ctx, ana, r.Value.ID)
 	if len(d.Versiones) != 9 {
 		t.Errorf("debía haber 9 versiones (1 + 8), hay %d", len(d.Versiones))
+	}
+}
+
+// Pasado el tope, las versiones más viejas se descartan (y sus archivos con ellas).
+func TestPostgres_topeDeVersiones(t *testing.T) {
+	db := baseDePrueba(t)
+	s := NewService(NewPostgresRepo(db))
+	ctx := context.Background()
+	ana := Quien{ID: "ana", Nombre: "Ana"}
+
+	var id string
+	for i := 1; i <= MaxVersiones+5; i++ {
+		r, err := s.GuardarDoc(ctx, ana, "tope.md", fmt.Sprintf("texto %d", i), "", Privado)
+		if err != nil || !r.OK {
+			t.Fatalf("guardado %d: %v %s", i, err, r.Error)
+		}
+		id = r.Value.ID
+	}
+	d, _ := s.Detalle(ctx, ana, id)
+	if len(d.Versiones) != MaxVersiones {
+		t.Fatalf("debían quedar %d versiones y hay %d", MaxVersiones, len(d.Versiones))
+	}
+	if d.Versiones[0].Numero != MaxVersiones+5 || d.Versiones[len(d.Versiones)-1].Numero != 6 {
+		t.Errorf("deben quedar de la 6 a la %d: primera %d, última %d", MaxVersiones+5, d.Versiones[0].Numero, d.Versiones[len(d.Versiones)-1].Numero)
+	}
+	var huerfanos int
+	_ = db.Get(&huerfanos, `SELECT count(*) FROM hl_workspace_file WHERE item_id = $1`, id)
+	if huerfanos != MaxVersiones {
+		t.Errorf("los archivos de las versiones descartadas deben irse con ellas: %d", huerfanos)
+	}
+	if a, _ := s.Archivo(ctx, ana, id, 0, "tope.md"); string(a.Contenido) != fmt.Sprintf("texto %d", MaxVersiones+5) {
+		t.Errorf("la actual sigue intacta: %q", a.Contenido)
 	}
 }

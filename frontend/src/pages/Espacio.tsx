@@ -11,12 +11,13 @@ import { Segmentado } from "../ui/Segmentado";
 import { Esqueletos, Vacio } from "../ui/Vacio";
 import { useDatos } from "../ui/useDatos";
 import { hace } from "../ui/tiempo";
+import { ConexionClaude } from "./espacio/ConexionClaude";
 import { DialogoSubir } from "./espacio/DialogoSubir";
 import { EditorDocs } from "./espacio/EditorDocs";
 import { VistaSkill } from "./espacio/VistaSkill";
 import { tamano } from "./espacio/formato";
 
-type Pestana = "skills" | "docs";
+type Pestana = "skills" | "docs" | "claude";
 type Filtro = "all" | "mine" | "shared";
 
 /** Espacio de trabajo: tus skills de Claude y tus documentos de instrucciones, con historial. */
@@ -43,6 +44,7 @@ export function Espacio() {
           opciones={[
             { valor: "skills", etiqueta: `Skills${skills.datos ? ` · ${skills.datos.length}` : ""}` },
             { valor: "docs", etiqueta: `Documentos${docs.datos ? ` · ${docs.datos.length}` : ""}` },
+            { valor: "claude", etiqueta: "Claude" },
           ]}
           alCambiar={setPestana}
         />
@@ -50,8 +52,10 @@ export function Espacio() {
 
       {pestana === "skills" ? (
         <Skills lista={skills.datos} cargando={skills.cargando} error={skills.error} esAdmin={esAdmin} recargar={skills.recargar} />
-      ) : (
+      ) : pestana === "docs" ? (
         <EditorDocs docs={docs.datos ?? []} cargando={docs.cargando} esAdmin={esAdmin} alCambiar={docs.recargar} />
+      ) : (
+        <ConexionClaude />
       )}
     </div>
   );

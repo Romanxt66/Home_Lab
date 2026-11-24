@@ -186,6 +186,11 @@ func (r *PostgresRepo) NuevaVersion(ctx context.Context, id string, v Version, a
 		 WHERE id = $1`, id, n, v.Descripcion, v.Archivos, v.Bytes, ahora); err != nil {
 		return nil, err
 	}
+	// Se conservan las últimas MaxVersiones; los archivos de las viejas caen en cascada.
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM hl_workspace_version WHERE item_id = $1 AND numero <= $2`, id, n-MaxVersiones); err != nil {
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
