@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "homelab",
+  "version": "0.1.0",
+  "description": "Enlaza Claude Code con tu espacio de trabajo de Home Lab: lee tus skills y documentos .md, guarda documentos y sincroniza tus skills con ~/.claude/skills.",
+  "author": { "name": "Roman" },
+  "homepage": "https://github.com/Romanxt66/Home_Lab/tree/master/claude-plugin",
+  "repository": "https://github.com/Romanxt66/Home_Lab",
+  "keywords": ["homelab", "mcp", "skills", "sync"]
+}

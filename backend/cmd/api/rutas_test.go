@@ -57,6 +57,7 @@ func TestNingunaRutaChocaConOtra(t *testing.T) {
 	workspace.NewHandler(nil).Register(privadas.Group("/workspace"))
 	tokens.NewHandler(nil).Register(privadas.Group("/tokens"))
 	mcp.NewHandler(nil, nil, nil).Register(r)
+	workspace.NewSyncHandler(nil, nil).Register(r.Group("/api/sync"))
 	email.NewOAuthHandler(email.OAuthConfig{}, nil, nil, false).Register(privadas.Group("/email"))
 	calendar.NewHandler(nil).Register(privadas.Group("/calendar"))
 	automations.NewHandler(nil).Register(privadas.Group("/automations"))

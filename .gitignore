@@ -17,3 +17,6 @@ frontend/dist/
 # build: solo se versiona el directorio, para que go:embed no falle.
 backend/internal/web/dist/*
 !backend/internal/web/dist/.gitkeep
+
+__pycache__/
+*.pyc

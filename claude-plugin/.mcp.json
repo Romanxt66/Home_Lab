@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "homelab": {
+      "type": "http",
+      "url": "${HOMELAB_URL:-https://lab.softlane.click}/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HOMELAB_TOKEN}"
+      }
+    }
+  }
+}

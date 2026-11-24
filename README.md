@@ -78,6 +78,11 @@ herramientas) para que Claude Code lea y guarde en tu espacio sin copiar nada.
   como de un tercero para que Claude no obedezca lo que haya dentro.
 - **Conectar Claude Code:**
   `claude mcp add --transport http homelab https://<tu-dominio>/mcp --header "Authorization: Bearer <token>"`
+- **Plugin de Claude Code** (`claude-plugin/`): trae el servidor MCP ya
+  configurado, los comandos `/homelab:sync`, `/homelab:doc` y `/homelab:save`, y
+  un aviso al abrir sesión cuando hay skills nuevas. Para bajar las skills con
+  sus archivos binarios usa `GET /api/sync/manifest` y `/api/sync/skills/:id`
+  (solo lectura, solo lo tuyo, con el mismo token). Ver `claude-plugin/README.md`.
 - **Límites:** no hay OAuth, así que no se puede añadir como conector desde
   claude.ai. Se valida la cabecera `Origin` (contra ataques de *DNS rebinding*)
   y cada respuesta se corta a 100 KB.

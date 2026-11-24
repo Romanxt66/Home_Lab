@@ -111,6 +111,7 @@ func main() {
 	workspaceService := workspace.NewService(workspace.NewPostgresRepo(db))
 	workspaceHandler := workspace.NewHandler(workspaceService)
 	tokenService := tokens.NewService(tokens.NewPostgresRepo(db))
+	syncHandler := workspace.NewSyncHandler(workspaceService, tokenService)
 	tokenHandler := tokens.NewHandler(tokenService)
 	// El servidor MCP entra con un token personal, no con la cookie de sesión.
 	mcpHandler := mcp.NewHandler(
@@ -226,6 +227,8 @@ func main() {
 	r.Use(gin.Logger(), gin.Recovery(), httpx.CORS(cfg.AllowedOrigins))
 
 	mcpHandler.Register(r)
+	// Sincronización de skills con token (la usa el plugin de Claude Code).
+	syncHandler.Register(r.Group("/api/sync"))
 
 	r.GET("/health", func(c *gin.Context) {
 		if err := db.Ping(); err != nil {
